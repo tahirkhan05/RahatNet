@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run lint-staged (eslint + prettier on changed files)
+pnpm lint-staged
+
+# Run typecheck across all packages
+pnpm typecheck

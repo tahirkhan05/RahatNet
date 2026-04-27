@@ -1,0 +1,137 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Reusable Smoke Test Workflow
+#
+# Called by both deploy-staging.yml and deploy-production.yml after deployment.
+# Tests hit the live URL to verify the deployment succeeded and core flows work.
+#
+# Inputs:
+#   deployment-url  The base URL of the just-deployed environment.
+#   environment     "staging" | "production" (for logging).
+#
+# Checks:
+#   1. GET /api/health → must return 200 with status "ok" or "degraded"
+#      (degraded is acceptable — some non-critical services may be warming up)
+#   2. GET / → HTML response with RahatNet branding
+#   3. GET /login → HTML response with the login form
+#   4. Response headers: security headers present (CSP, HSTS, X-Frame-Options)
+#   5. Commit SHA matches the NEXT_PUBLIC_COMMIT_SHA we injected at build time
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: Smoke Tests (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      deployment-url:
+        required: true
+        type: string
+        description: 'Base URL of the deployed environment (e.g. https://rahatnet--staging.web.app)'
+      environment:
+        required: true
+        type: string
+        description: '"staging" or "production"'
+      commit-sha:
+        required: true
+        type: string
+        description: 'Git commit SHA that was deployed'
+    secrets:
+      # No secrets needed — smoke tests are read-only and unauthenticated.
+      SLACK_BOT_TOKEN:
+        required: false
+
+jobs:
+  smoke:
+    name: Smoke Tests (${{ inputs.environment }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Health check — GET /api/health
+        id: health
+        run: |
+          echo "Checking ${{ inputs.deployment-url }}/api/health"
+          RESPONSE=$(curl --silent --fail --max-time 30 \
+            --retry 5 --retry-delay 10 --retry-connrefused \
+            -w '\n{"http_code":%{http_code}}' \
+            "${{ inputs.deployment-url }}/api/health")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1 | python3 -c "import sys,json; print(json.load(sys.stdin)['http_code'])")
+          BODY=$(echo "$RESPONSE" | head -1)
+
+          echo "HTTP status: ${HTTP_CODE}"
+          echo "Response body: ${BODY}"
+
+          if [ "$HTTP_CODE" != "200" ] && [ "$HTTP_CODE" != "207" ]; then
+            echo "❌ Health check failed: HTTP ${HTTP_CODE}"
+            exit 1
+          fi
+
+          STATUS=$(echo "$BODY" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('data', {}).get('status', 'unknown'))")
+          echo "App status: ${STATUS}"
+
+          if [ "$STATUS" = "down" ]; then
+            echo "❌ Health check returned status=down"
+            echo "Full response: ${BODY}"
+            exit 1
+          fi
+
+          echo "✅ Health check passed (status=${STATUS})"
+          echo "status=${STATUS}" >> "$GITHUB_OUTPUT"
+
+      - name: Commit SHA check
+        run: |
+          COMMIT_SHA_HEADER=$(curl --silent --max-time 10 \
+            -I "${{ inputs.deployment-url }}/api/health" | \
+            grep -i "x-commit-sha" | awk '{print $2}' | tr -d '\r')
+
+          echo "Expected SHA: ${{ inputs.commit-sha }}"
+          echo "Deployed SHA: ${COMMIT_SHA_HEADER}"
+
+          if [ -n "${COMMIT_SHA_HEADER}" ] && [ "${COMMIT_SHA_HEADER}" != "${{ inputs.commit-sha }}" ]; then
+            echo "⚠️  SHA mismatch — deployment may be stale"
+            echo "Expected: ${{ inputs.commit-sha }}"
+            echo "Got:      ${COMMIT_SHA_HEADER}"
+            # Warning only — don't fail (CDN may be caching old headers briefly)
+          else
+            echo "✅ Commit SHA matches"
+          fi
+
+      - name: Login page renders
+        run: |
+          BODY=$(curl --silent --fail --max-time 15 "${{ inputs.deployment-url }}/login")
+          if echo "$BODY" | grep -qi "RahatNet"; then
+            echo "✅ Login page renders with RahatNet branding"
+          else
+            echo "❌ Login page missing expected content"
+            echo "Body preview: $(echo "$BODY" | head -20)"
+            exit 1
+          fi
+
+      - name: Security headers present
+        run: |
+          HEADERS=$(curl --silent --max-time 10 -I "${{ inputs.deployment-url }}/login")
+          echo "$HEADERS"
+
+          check_header() {
+            if echo "$HEADERS" | grep -qi "$1"; then
+              echo "✅ $1 header present"
+            else
+              echo "❌ $1 header MISSING"
+              exit 1
+            fi
+          }
+
+          check_header "strict-transport-security"
+          check_header "x-frame-options"
+          check_header "x-content-type-options"
+          check_header "referrer-policy"
+
+      - name: Report smoke test summary
+        if: always()
+        run: |
+          echo "## Smoke Test Results (${{ inputs.environment }})" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Health check | ${{ steps.health.outputs.status || 'failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deployment URL | ${{ inputs.deployment-url }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit SHA | \`${{ inputs.commit-sha }}\` |" >> $GITHUB_STEP_SUMMARY

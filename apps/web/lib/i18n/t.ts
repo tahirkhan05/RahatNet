@@ -1,0 +1,205 @@
+/**
+ * i18n stub — a typed translation function that returns English strings today
+ * and can be wired to a real i18n library (next-intl, react-i18next, etc.)
+ * in a future phase without changing call sites.
+ *
+ * Usage:
+ *   import { t } from '@/lib/i18n/t';
+ *   <p>{t('auth.login.title')}</p>
+ *
+ * To migrate to next-intl:
+ *   1. Replace this file with a proper next-intl setup.
+ *   2. Change imports from '@/lib/i18n/t' to 'next-intl'.
+ *   3. All keys already used here become the canonical message keys.
+ */
+
+const strings = {
+  // ---------------------------------------------------------------------------
+  // Auth — login
+  // ---------------------------------------------------------------------------
+  'auth.login.title': 'RahatNet',
+  'auth.login.subtitle': 'AI-powered disaster coordination',
+  'auth.login.phone.label': 'Phone number',
+  'auth.login.phone.placeholder': '98765 43210',
+  'auth.login.phone.prefix': '+91',
+  'auth.login.phone.invalid': 'Enter a valid 10-digit Indian mobile number.',
+  'auth.login.continue.phone': 'Continue with phone',
+  'auth.login.continue.google': 'Continue with Google',
+  'auth.login.divider': 'or',
+  'auth.login.language.label': 'Language',
+  'auth.login.offline.title': 'You are offline',
+  'auth.login.offline.body': 'Please check your internet connection to sign in.',
+  'auth.login.slow.body': 'Slow connection detected. Sign-in may take longer.',
+
+  // ---------------------------------------------------------------------------
+  // Auth — verify OTP
+  // ---------------------------------------------------------------------------
+  'auth.verify.title': 'Enter OTP',
+  'auth.verify.subtitle': 'We sent a 6-digit code to',
+  'auth.verify.resend': 'Resend code',
+  'auth.verify.resend.in': 'Resend in {seconds}s',
+  'auth.verify.back': 'Change number',
+  'auth.verify.verifying': 'Verifying…',
+  'auth.verify.error.wrong': 'Incorrect OTP. Please check and try again.',
+  'auth.verify.error.expired': 'The OTP has expired. Please request a new one.',
+  'auth.verify.error.generic': 'Verification failed. Please try again.',
+
+  // ---------------------------------------------------------------------------
+  // Auth — onboarding
+  // ---------------------------------------------------------------------------
+  'auth.onboarding.title': 'Get started',
+  'auth.onboarding.step': 'Step {current} of {total}',
+  'auth.onboarding.next': 'Continue',
+  'auth.onboarding.back': 'Back',
+  'auth.onboarding.finish': 'Finish setup',
+
+  'auth.onboarding.role.title': 'How will you use RahatNet?',
+  'auth.onboarding.role.subtitle': 'Choose your role to customise the experience.',
+  'auth.onboarding.role.citizen': 'I need help',
+  'auth.onboarding.role.citizen.desc': 'Report needs and track help for you or your family.',
+  'auth.onboarding.role.volunteer': 'I want to help',
+  'auth.onboarding.role.volunteer.desc': 'Receive task assignments and navigate to people in need.',
+  'auth.onboarding.role.coordinator': 'I coordinate relief',
+  'auth.onboarding.role.coordinator.desc': 'Manage volunteers, resources, and the war-room dashboard.',
+
+  'auth.onboarding.skills.title': 'What skills do you have?',
+  'auth.onboarding.skills.subtitle': 'Select all that apply. This helps us match you to the right tasks.',
+  'auth.onboarding.skills.required': 'Please select at least one skill.',
+
+  'auth.onboarding.languages.title': 'Which languages do you speak?',
+  'auth.onboarding.languages.subtitle': 'Used to match you with people who speak your language.',
+
+  'auth.onboarding.avatar.label': 'Profile photo (optional)',
+  'auth.onboarding.avatar.change': 'Change photo',
+  'auth.onboarding.avatar.remove': 'Remove',
+
+  'auth.onboarding.org.title': 'Your organisation',
+  'auth.onboarding.org.name.label': 'Organisation name',
+  'auth.onboarding.org.name.placeholder': 'e.g. Kerala Red Cross',
+  'auth.onboarding.org.designation.label': 'Your designation',
+  'auth.onboarding.org.designation.placeholder': 'e.g. District Coordinator',
+  'auth.onboarding.org.district.label': 'District',
+  'auth.onboarding.org.district.placeholder': 'e.g. Ernakulam',
+
+  'auth.onboarding.location.title': 'Enable location',
+  'auth.onboarding.location.subtitle':
+    'RahatNet uses your location to show nearby needs and help dispatch you to the right place.',
+  'auth.onboarding.location.allow': 'Allow location access',
+  'auth.onboarding.location.skip': 'Skip for now',
+  'auth.onboarding.location.why': 'Your location is only shared with coordinators, never with the public.',
+  'auth.onboarding.location.granted': 'Location access granted',
+  'auth.onboarding.location.denied': 'Location access denied. You can enable it later in browser settings.',
+
+  // ---------------------------------------------------------------------------
+  // Citizen — need report form
+  // ---------------------------------------------------------------------------
+  'report.step1.title': 'What do you need?',
+  'report.step1.subtitle': 'Tap to select the type of help needed.',
+  'report.type.RESCUE': 'Rescue',
+  'report.type.RESCUE.desc': 'Person trapped or in danger',
+  'report.type.FOOD': 'Food & Water',
+  'report.type.FOOD.desc': 'Food, drinking water, baby formula',
+  'report.type.MEDICINE': 'Medicine',
+  'report.type.MEDICINE.desc': 'Medical help or medicine required',
+  'report.type.SHELTER': 'Shelter',
+  'report.type.SHELTER.desc': 'Temporary shelter needed',
+  'report.type.MENTAL_HEALTH': 'Mental Support',
+  'report.type.MENTAL_HEALTH.desc': 'Counselling or emotional support',
+  'report.type.INFRASTRUCTURE': 'Infrastructure',
+  'report.type.INFRASTRUCTURE.desc': 'Road, power, or building damage',
+
+  'report.step2.title': 'Describe the situation',
+  'report.step2.location.label': 'Your location',
+  'report.step2.location.detecting': 'Detecting location…',
+  'report.step2.location.edit': 'Edit location',
+  'report.step2.location.manual': 'Enter location name',
+  'report.step2.location.manual.placeholder': 'e.g. Near Aluva Bridge, Ernakulam',
+  'report.step2.voice.label': 'Describe by voice',
+  'report.step2.voice.start': 'Hold to record',
+  'report.step2.voice.stop': 'Stop recording',
+  'report.step2.voice.play': 'Play recording',
+  'report.step2.voice.remove': 'Remove recording',
+  'report.step2.voice.no_permission': 'Microphone not available. Please describe in text.',
+  'report.step2.text.label': 'Or describe in text',
+  'report.step2.text.placeholder': 'Describe what help is needed, who is affected, and any urgent details…',
+  'report.step2.text.min': 'Please describe the situation (at least 10 characters).',
+  'report.step2.photo.label': 'Add a photo (optional)',
+  'report.step2.photo.add': 'Add photo',
+  'report.step2.photo.change': 'Change photo',
+  'report.step2.photo.remove': 'Remove',
+  'report.step2.photo.uploading': 'Uploading…',
+  'report.step2.count.label': 'How many people need help?',
+  'report.step2.vulnerable.label': 'Are any of them elderly, disabled, or a child?',
+  'report.step3.title': 'Confirm your report',
+  'report.step3.type': 'Type of help',
+  'report.step3.location': 'Location',
+  'report.step3.description': 'Description',
+  'report.step3.voice': 'Voice note attached',
+  'report.step3.photo': 'Photo attached',
+  'report.step3.count': '{count} people affected',
+  'report.step3.vulnerable': 'Includes elderly / child / disabled person',
+  'report.step3.submit': 'Submit report',
+  'report.step3.submitting': 'Submitting…',
+  'report.step3.offline_note': 'You are offline. Your report will be sent automatically when you reconnect.',
+  'report.step3.queue_note': '{count} report(s) waiting to be sent',
+  'report.success.title': 'Report submitted',
+  'report.success.id': 'Report ID: {id}',
+  'report.success.body': 'We have received your report. Help will be dispatched as soon as possible.',
+  'report.success.track': 'Track your report',
+  'report.success.new': 'Report another need',
+  'report.error.submit': 'Could not submit your report. Please try again.',
+  'report.error.location': 'Could not detect location. Please enter it manually.',
+  'report.nav.back': 'Back',
+  'report.nav.next': 'Next',
+
+  // ---------------------------------------------------------------------------
+  // Citizen — status tracker
+  // ---------------------------------------------------------------------------
+  'status.title': 'My Reports',
+  'status.empty': 'You have not submitted any reports yet.',
+  'status.report_new': 'Report a need',
+  'status.status.PENDING': 'Submitted',
+  'status.status.AI_PROCESSING': 'Processing',
+  'status.status.VERIFIED': 'Verified',
+  'status.status.ASSIGNED': 'Help on the way',
+  'status.status.IN_PROGRESS': 'Help arriving',
+  'status.status.RESOLVED': 'Resolved',
+  'status.status.DUPLICATE': 'Merged with another report',
+  'status.status.CANCELLED': 'Cancelled',
+  'status.eta': 'Estimated arrival: {minutes} min',
+  'status.contact': 'Contact coordinator',
+  'status.updated': 'Updated {time}',
+  'status.people': '{count} people',
+  'status.loading': 'Loading your reports…',
+
+  // ---------------------------------------------------------------------------
+  // Shared
+  // ---------------------------------------------------------------------------
+  'common.loading': 'Loading…',
+  'common.error.generic': 'Something went wrong. Please try again.',
+  'common.error.offline': 'You are offline. Please check your connection.',
+  'common.retry': 'Try again',
+  'common.cancel': 'Cancel',
+} as const;
+
+type StringKey = keyof typeof strings;
+
+/**
+ * Translate a key to its English string, interpolating `{param}` placeholders.
+ *
+ * @example
+ * t('auth.verify.resend.in', { seconds: 42 }) // → "Resend in 42s"
+ * t('auth.onboarding.step', { current: 1, total: 3 }) // → "Step 1 of 3"
+ */
+export function t(key: StringKey, params?: Record<string, string | number>): string {
+  let str: string = strings[key];
+  if (params != null) {
+    for (const [k, v] of Object.entries(params)) {
+      str = str.replace(`{${k}}`, String(v));
+    }
+  }
+  return str;
+}
+
+/** All supported string keys — useful for exhaustive type checks. */
+export type { StringKey as I18nKey };

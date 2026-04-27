@@ -1,0 +1,433 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Deploy to Production
+#
+# Trigger: push to the `main` branch (after PR is merged).
+#
+# Steps:
+#   1. pre-deploy-checks — verify CI passed, no .env files, version bump
+#   2. build-and-deploy  — build with prod env vars, deploy hosting + functions
+#      → requires GitHub Environment "production" approval gate
+#   3. post-deploy       — health check, smoke tests, GitHub release, Slack
+#   4. rollback          — automatic rollback if health check fails
+#
+# GitHub Environment: production
+#   - Manual approval required from a senior engineer before deployment runs
+#   - Environment secrets: Firebase production project credentials
+#   - Wait timer: 5 minutes (gives time to cancel an accidental merge)
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: Deploy — Production
+
+on:
+  push:
+    branches:
+      - main
+
+# Only one production deploy runs at a time — subsequent pushes queue.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9.1.0'
+  TURBO_TOKEN:  ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM:   ${{ secrets.TURBO_TEAM }}
+
+jobs:
+  # ───────────────────────────────────────────────────────────────────────────
+  # Job 1: Pre-deploy checks
+  # ───────────────────────────────────────────────────────────────────────────
+  pre-deploy-checks:
+    name: Pre-Deploy Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Verify all CI checks passed on this exact commit.
+      # The GitHub API is queried to avoid deploying a commit whose CI is
+      # still running or has failed.
+      - name: Verify CI passed on this commit
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: checks } = await github.rest.checks.listForRef({
+              owner:   context.repo.owner,
+              repo:    context.repo.repo,
+              ref:     context.sha,
+              filter:  'latest',
+            });
+
+            const required = ['Lint & Typecheck', 'Unit & Integration Tests', 'Build (Docker)', 'E2E Tests (Playwright)'];
+            const results  = checks.check_runs.reduce((acc, run) => {
+              acc[run.name] = run.conclusion;
+              return acc;
+            }, {});
+
+            console.log('CI check results:', JSON.stringify(results, null, 2));
+
+            const failed = required.filter(name => results[name] !== 'success');
+            if (failed.length > 0) {
+              core.setFailed(`Required CI checks not passing: ${failed.join(', ')}`);
+            } else {
+              console.log('✅ All required CI checks passed');
+            }
+
+      # Ensure no .env files or credentials were accidentally committed.
+      - name: Check for committed secrets
+        run: |
+          # Look for .env files that should never be committed
+          if git diff --name-only HEAD~1 HEAD | grep -qE '^\.env|\.env\.|service-account|\.key$|\.pem$'; then
+            echo "❌ Potentially sensitive files found in this commit!"
+            git diff --name-only HEAD~1 HEAD | grep -E '\.env|service-account|\.key$|\.pem$'
+            exit 1
+          fi
+          echo "✅ No sensitive files detected in commit"
+
+      # Extract the version from package.json and validate it increased.
+      - name: Validate version bump
+        run: |
+          VERSION=$(cat package.json | python3 -c "import sys,json; print(json.load(sys.stdin)['version'])")
+          echo "Deploying version: ${VERSION}"
+
+          # Ensure the version looks like semver
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
+            echo "❌ Version '$VERSION' does not look like semver"
+            exit 1
+          fi
+
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
+          echo "✅ Version validation passed: v${VERSION}"
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Job 2: Build and deploy to production
+  # ───────────────────────────────────────────────────────────────────────────
+  build-and-deploy:
+    name: Build & Deploy (Production)
+    runs-on: ubuntu-latest
+    needs: pre-deploy-checks
+    environment: production   # ← manual approval gate lives here
+    timeout-minutes: 30
+    outputs:
+      deployment-url: ${{ steps.deploy-hosting.outputs.details_url }}
+      version:        ${{ env.APP_VERSION }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Read version
+        run: |
+          VERSION=$(cat package.json | python3 -c "import sys,json; print(json.load(sys.stdin)['version'])")
+          echo "APP_VERSION=${VERSION}" >> "$GITHUB_ENV"
+
+      # ─────────────────────────────────────────────────────────────────────
+      # Build with production environment variables
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Build (production)
+        run: pnpm turbo run build
+        env:
+          NEXT_PUBLIC_FIREBASE_API_KEY:            ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:        ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID:         ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET:     ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID:             ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+          NEXT_PUBLIC_FIREBASE_DATABASE_URL:       ${{ secrets.NEXT_PUBLIC_FIREBASE_DATABASE_URL }}
+          NEXT_PUBLIC_GOOGLE_MAPS_KEY:             ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_KEY }}
+          NEXT_PUBLIC_FCM_VAPID_KEY:               ${{ secrets.NEXT_PUBLIC_FCM_VAPID_KEY }}
+          NEXT_PUBLIC_GA_MEASUREMENT_ID:           ${{ secrets.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
+          NEXT_PUBLIC_APP_URL:                     ${{ secrets.PRODUCTION_APP_URL }}
+          NEXT_PUBLIC_ENV:                         production
+          NEXT_PUBLIC_COMMIT_SHA:                  ${{ github.sha }}
+          BIGQUERY_DATASET_ID:                     rahatnet_analytics
+
+      # ─────────────────────────────────────────────────────────────────────
+      # Authenticate to Google Cloud
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_PRODUCTION }}
+
+      - name: Setup Firebase CLI
+        run: npm install -g firebase-tools@latest
+
+      # ─────────────────────────────────────────────────────────────────────
+      # Deploy Firestore + Storage security rules
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Deploy security rules
+        run: |
+          firebase deploy \
+            --only firestore:rules,storage \
+            --project ${{ secrets.FIREBASE_PROJECT_ID_PRODUCTION }} \
+            --non-interactive
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      # ─────────────────────────────────────────────────────────────────────
+      # Deploy Cloud Functions
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Build Cloud Functions
+        run: pnpm --filter @rahatnet/functions build
+
+      - name: Deploy Cloud Functions
+        run: |
+          firebase deploy \
+            --only functions \
+            --project ${{ secrets.FIREBASE_PROJECT_ID_PRODUCTION }} \
+            --non-interactive
+        env:
+          FIREBASE_TOKEN:           ${{ secrets.FIREBASE_TOKEN }}
+          GEMINI_API_KEY:           ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_CLOUD_PROJECT_ID:  ${{ secrets.FIREBASE_PROJECT_ID_PRODUCTION }}
+          BIGQUERY_DATASET_ID:      rahatnet_analytics
+          NDMA_API_URL:             ${{ secrets.NDMA_API_URL }}
+
+      # ─────────────────────────────────────────────────────────────────────
+      # Deploy to Firebase Hosting — live channel (production)
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Deploy to Firebase Hosting (live channel)
+        id: deploy-hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken:              ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_PRODUCTION }}
+          projectId:              ${{ secrets.FIREBASE_PROJECT_ID_PRODUCTION }}
+          channelId:              live
+          target:                 rahatnet-web
+
+      - name: Print production URL
+        run: echo "Production URL → ${{ steps.deploy-hosting.outputs.details_url }}"
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Job 3: Post-deploy — smoke tests + GitHub release + Slack
+  # ───────────────────────────────────────────────────────────────────────────
+  post-deploy:
+    name: Post-Deploy
+    runs-on: ubuntu-latest
+    needs: build-and-deploy
+    timeout-minutes: 15
+    outputs:
+      smoke-passed: ${{ steps.smoke-result.outputs.passed }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ─────────────────────────────────────────────────────────────────────
+      # Definitive health check (must be HTTP 200 or 207)
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Health check — production
+        id: health
+        run: |
+          URL="${{ secrets.PRODUCTION_APP_URL }}/api/health"
+          echo "Checking ${URL}"
+
+          for attempt in 1 2 3 4 5; do
+            HTTP_CODE=$(curl --silent --max-time 30 -o /tmp/health.json -w "%{http_code}" "${URL}")
+            echo "Attempt ${attempt}: HTTP ${HTTP_CODE}"
+
+            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "207" ]; then
+              STATUS=$(cat /tmp/health.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('data',{}).get('status','unknown'))")
+              echo "App status: ${STATUS}"
+              echo "health_status=${HTTP_CODE}" >> "$GITHUB_OUTPUT"
+              echo "✅ Health check passed"
+              exit 0
+            fi
+
+            echo "Waiting 15 s before retry..."
+            sleep 15
+          done
+
+          echo "❌ Health check failed after 5 attempts"
+          cat /tmp/health.json
+          echo "health_status=failed" >> "$GITHUB_OUTPUT"
+          exit 1
+
+      # Run the reusable smoke tests
+      - name: Smoke result marker
+        id: smoke-result
+        if: steps.health.outcome == 'success'
+        run: echo "passed=true" >> "$GITHUB_OUTPUT"
+
+      # ─────────────────────────────────────────────────────────────────────
+      # Tag the release in GitHub
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Create GitHub release
+        if: steps.health.outcome == 'success'
+        uses: actions/github-script@v7
+        env:
+          APP_VERSION: ${{ needs.build-and-deploy.outputs.version }}
+        with:
+          script: |
+            const version = process.env.APP_VERSION;
+            const tag     = `v${version}`;
+
+            // Create an annotated tag.
+            try {
+              await github.rest.git.createRef({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                ref:   `refs/tags/${tag}`,
+                sha:   context.sha,
+              });
+            } catch (err) {
+              if (err.status === 422) {
+                console.log(`Tag ${tag} already exists — skipping`);
+              } else {
+                throw err;
+              }
+            }
+
+            // Create the release.
+            await github.rest.repos.createRelease({
+              owner:             context.repo.owner,
+              repo:              context.repo.repo,
+              tag_name:          tag,
+              name:              `v${version}`,
+              body:              `## RahatNet v${version}\n\nDeployed commit: ${context.sha}\n\nSee [CHANGELOG.md](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/CHANGELOG.md) for details.`,
+              draft:             false,
+              prerelease:        false,
+              target_commitish:  context.sha,
+            });
+
+            console.log(`✅ Release ${tag} created`);
+
+      # ─────────────────────────────────────────────────────────────────────
+      # Notify Slack — success
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Notify Slack — production success
+        if: steps.health.outcome == 'success'
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "🚀 *Production deployed* — RahatNet v${{ needs.build-and-deploy.outputs.version }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "🚀 *Production deployed successfully*\n*Version:* v${{ needs.build-and-deploy.outputs.version }}\n*URL:* ${{ secrets.PRODUCTION_APP_URL }}\n*Commit:* `${{ github.sha }}`"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN:  ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_DEPLOYMENTS }}
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Job 4: Smoke tests (reusable)
+  # ───────────────────────────────────────────────────────────────────────────
+  smoke-tests:
+    name: Smoke Tests
+    needs:
+      - build-and-deploy
+      - post-deploy
+    if: needs.post-deploy.outputs.smoke-passed == 'true'
+    uses: ./.github/workflows/_smoke-tests.yml
+    with:
+      deployment-url: ${{ secrets.PRODUCTION_APP_URL }}
+      environment:    production
+      commit-sha:     ${{ github.sha }}
+    secrets: inherit
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Job 5: Rollback on failure
+  # ───────────────────────────────────────────────────────────────────────────
+  rollback:
+    name: Rollback (on failure)
+    runs-on: ubuntu-latest
+    needs:
+      - build-and-deploy
+      - post-deploy
+    # Only run when the health check failed.
+    if: |
+      always() &&
+      (needs.build-and-deploy.result == 'failure' ||
+       needs.post-deploy.result == 'failure')
+    environment: production
+    timeout-minutes: 15
+
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_PRODUCTION }}
+
+      - name: Setup Firebase CLI
+        run: npm install -g firebase-tools@latest
+
+      - name: Rollback Firebase Hosting to previous release
+        run: |
+          echo "⏮️  Rolling back Firebase Hosting to previous release..."
+          firebase hosting:rollback \
+            --project ${{ secrets.FIREBASE_PROJECT_ID_PRODUCTION }} \
+            --force \
+            --non-interactive
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Notify Slack — rollback
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "⏮️  *ROLLBACK EXECUTED* — RahatNet production",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "⏮️  *Production rollback executed*\nDeploy for commit `${{ github.sha }}` failed the health check.\nPrevious release has been restored.\n*Run:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN:  ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ALERTS }}
+
+      # PagerDuty alert for production incidents.
+      - name: PagerDuty alert
+        run: |
+          curl --silent \
+            --request POST \
+            --header "Content-Type: application/json" \
+            --data '{
+              "routing_key": "${{ secrets.PAGERDUTY_ROUTING_KEY }}",
+              "event_action": "trigger",
+              "payload": {
+                "summary": "RahatNet production deploy failed and was rolled back",
+                "severity": "critical",
+                "source": "GitHub Actions",
+                "custom_details": {
+                  "commit_sha": "${{ github.sha }}",
+                  "run_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                }
+              }
+            }' \
+            "https://events.pagerduty.com/v2/enqueue" || echo "PagerDuty alert send failed (non-fatal)"

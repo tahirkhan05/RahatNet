@@ -1,0 +1,24 @@
+{
+  "projects": {
+    "default": "rahatnet-prod",
+    "staging": "rahatnet-staging",
+    "production": "rahatnet-prod"
+  },
+  "targets": {
+    "rahatnet-prod": {
+      "hosting": {
+        "rahatnet-web": [
+          "rahatnet-prod"
+        ]
+      }
+    },
+    "rahatnet-staging": {
+      "hosting": {
+        "rahatnet-web": [
+          "rahatnet-staging"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

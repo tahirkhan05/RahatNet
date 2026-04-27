@@ -1,0 +1,247 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------------------
+    // Helper functions
+    // ---------------------------------------------------------------------------
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    // Use Firebase Auth custom claims for role checks — avoids Firestore circular reads.
+    function getRole() {
+      return request.auth.token.get('role', 'CITIZEN');
+    }
+
+    function hasRole(role) {
+      return isAuthenticated() && getRole() == role;
+    }
+
+    function hasAnyRole(roles) {
+      return isAuthenticated() && getRole() in roles;
+    }
+
+    function isCoordinatorOrAdmin() {
+      return hasAnyRole(['COORDINATOR', 'ADMIN', 'coordinator', 'admin']);
+    }
+
+    function isVolunteerOrAbove() {
+      return hasAnyRole(['VOLUNTEER', 'COORDINATOR', 'ADMIN', 'volunteer', 'coordinator', 'admin']);
+    }
+
+    // ---------------------------------------------------------------------------
+    // /users/{userId}
+    // ---------------------------------------------------------------------------
+
+    match /users/{userId} {
+      // All authenticated users can read any profile.
+      // Needed: volunteers read citizen contact, citizens read volunteer contact.
+      allow read: if isAuthenticated();
+
+      // Users can only write their own profile.
+      allow create: if isAuthenticated() && isOwner(userId);
+      allow update: if isAuthenticated() && isOwner(userId);
+
+      // Only admins can delete accounts.
+      allow delete: if hasRole('ADMIN');
+    }
+
+    // ---------------------------------------------------------------------------
+    // /rawReports/{reportId}
+    // ---------------------------------------------------------------------------
+
+    match /rawReports/{reportId} {
+      // Any authenticated user can submit a report.
+      allow create: if isAuthenticated();
+
+      // Reporter can read their own report; coordinators can read all.
+      allow read: if isAuthenticated() && (
+        resource.data.reporterId == request.auth.uid ||
+        isCoordinatorOrAdmin()
+      );
+
+      // Only coordinators/admins can update (status changes, canonicalNeedId).
+      allow update: if isCoordinatorOrAdmin();
+
+      // Owner or admin can delete (account deletion flow).
+      allow delete: if isAuthenticated() && (
+        resource.data.reporterId == request.auth.uid || hasRole('ADMIN')
+      );
+    }
+
+    // ---------------------------------------------------------------------------
+    // /needs/{needId}
+    // ---------------------------------------------------------------------------
+
+    match /needs/{needId} {
+      // All authenticated users can read needs (citizens see their own needs via status page).
+      allow read: if isAuthenticated();
+
+      // Needs are created by the server (AI pipeline) only — no direct client writes.
+      allow create: if isCoordinatorOrAdmin();
+
+      // Coordinators/admins can update (assignment, status, severity).
+      // Volunteers can update the status of needs assigned to them.
+      allow update: if isCoordinatorOrAdmin() || (
+        isVolunteerOrAbove() &&
+        resource.data.assignedVolunteerId == request.auth.uid
+      );
+
+      allow delete: if hasRole('ADMIN');
+    }
+
+    // ---------------------------------------------------------------------------
+    // /assignments/{assignmentId}
+    // ---------------------------------------------------------------------------
+
+    match /assignments/{assignmentId} {
+      // All authenticated users can read assignments (volunteers see their own).
+      allow read: if isAuthenticated();
+
+      // Only coordinators/admins can create assignments (dispatch system).
+      allow create: if isCoordinatorOrAdmin();
+
+      // Volunteers can update their own assignment (accept/decline/complete).
+      // Coordinators can update any assignment.
+      allow update: if isCoordinatorOrAdmin() || (
+        isAuthenticated() &&
+        resource.data.volunteerId == request.auth.uid
+      );
+
+      allow delete: if hasRole('ADMIN');
+    }
+
+    match /assignments/{assignmentId}/history/{eventId} {
+      allow read:   if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if hasRole('ADMIN');
+    }
+
+    // ---------------------------------------------------------------------------
+    // /disasterEvents/{eventId}
+    // ---------------------------------------------------------------------------
+
+    match /disasterEvents/{eventId} {
+      // All authenticated users can read disaster events.
+      allow read: if isAuthenticated();
+
+      // Coordinators/admins and the system (via Admin SDK) can create/update events.
+      allow create, update: if isCoordinatorOrAdmin();
+      allow delete: if hasRole('ADMIN');
+    }
+
+    match /disasterEvents/{eventId}/zones/{zoneId} {
+      allow read:   if isAuthenticated();
+      allow write:  if isCoordinatorOrAdmin();
+    }
+
+    // ---------------------------------------------------------------------------
+    // /resources/{resourceId}
+    // ---------------------------------------------------------------------------
+
+    match /resources/{resourceId} {
+      allow read: if isAuthenticated();
+      allow write: if isCoordinatorOrAdmin();
+    }
+
+    match /resources/{resourceId}/allocations/{allocationId} {
+      allow read:   if isAuthenticated();
+      allow write:  if isCoordinatorOrAdmin();
+    }
+
+    // ---------------------------------------------------------------------------
+    // /imdAlerts/{alertId}
+    // ---------------------------------------------------------------------------
+
+    match /imdAlerts/{alertId} {
+      allow read:  if isAuthenticated();
+      // Written only by Cloud Functions (Admin SDK bypass rules).
+      allow write: if hasRole('ADMIN');
+    }
+
+    // ---------------------------------------------------------------------------
+    // /alertTriggers/{triggerId}
+    // ---------------------------------------------------------------------------
+
+    match /alertTriggers/{triggerId} {
+      allow read:  if isCoordinatorOrAdmin();
+      allow write: if hasRole('ADMIN');
+    }
+
+    // ---------------------------------------------------------------------------
+    // /urgencyScoreHistory/{needId}
+    // ---------------------------------------------------------------------------
+
+    match /urgencyScoreHistory/{needId} {
+      allow read:  if isCoordinatorOrAdmin();
+      // Written only by Cloud Functions.
+      allow write: if hasRole('ADMIN');
+    }
+
+    // ---------------------------------------------------------------------------
+    // /dispatchAuditLog/{docId}
+    // ---------------------------------------------------------------------------
+
+    match /dispatchAuditLog/{docId} {
+      allow read:  if isCoordinatorOrAdmin();
+      allow write: if isCoordinatorOrAdmin();
+    }
+
+    // ---------------------------------------------------------------------------
+    // /translations/{docId}  — canonical need translation cache
+    // ---------------------------------------------------------------------------
+
+    match /translations/{docId} {
+      allow read:  if isAuthenticated();
+      allow write: if isCoordinatorOrAdmin();
+    }
+
+    // ---------------------------------------------------------------------------
+    // /config/{docId}  — runtime feature flags (A/B tests, feature toggles)
+    // ---------------------------------------------------------------------------
+
+    match /config/{docId} {
+      allow read:  if isAuthenticated();
+      allow write: if hasRole('ADMIN');
+    }
+
+    // ---------------------------------------------------------------------------
+    // /aiAuditLog/{batchId}/clusters/{clusterId}
+    // ---------------------------------------------------------------------------
+
+    match /aiAuditLog/{batchId} {
+      allow read:  if isCoordinatorOrAdmin();
+      allow write: if isCoordinatorOrAdmin();
+
+      match /clusters/{clusterId} {
+        allow read:  if isCoordinatorOrAdmin();
+        allow write: if isCoordinatorOrAdmin();
+      }
+    }
+
+    // ---------------------------------------------------------------------------
+    // /analytics/{docId}  — aggregated metrics (read-only for coordinators)
+    // ---------------------------------------------------------------------------
+
+    match /analytics/{docId} {
+      allow read:  if isCoordinatorOrAdmin();
+      allow write: if hasRole('ADMIN');
+    }
+
+    // ---------------------------------------------------------------------------
+    // /_health/{docId}  — health check sentinel documents
+    // ---------------------------------------------------------------------------
+
+    match /_health/{docId} {
+      allow read:  if isAuthenticated();
+      // Written only by Cloud Functions / Admin SDK.
+      allow write: if false;
+    }
+  }
+}

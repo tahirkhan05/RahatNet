@@ -1,0 +1,22 @@
+{
+  "rules": {
+    "volunteerLocations": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "disasterAlerts": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "presence": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    ".read": false,
+    ".write": false
+  }
+}

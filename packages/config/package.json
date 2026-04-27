@@ -1,0 +1,30 @@
+{
+  "name": "@rahatnet/config",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shared configuration for ESLint, TypeScript, and Tailwind CSS",
+  "exports": {
+    "./eslint": "./eslint/index.js",
+    "./tailwind": "./tailwind/index.ts",
+    "./typescript/base": "./typescript/base.json",
+    "./typescript/nextjs": "./typescript/nextjs.json",
+    "./typescript/node": "./typescript/node.json"
+  },
+  "typesVersions": {
+    "*": {
+      "typescript/base": ["./typescript/base.json"],
+      "typescript/nextjs": ["./typescript/nextjs.json"],
+      "typescript/node": ["./typescript/node.json"]
+    }
+  },
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.11.0",
+    "@typescript-eslint/parser": "^7.11.0",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.3",
+    "eslint-plugin-react": "^7.34.2",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "tailwindcss": "^3.4.3",
+    "tailwindcss-animate": "^1.0.7"
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "needs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "disasterEventId", "order": "ASCENDING" },
+        { "fieldPath": "status",          "order": "ASCENDING" },
+        { "fieldPath": "urgencyScore",    "order": "DESCENDING" },
+        { "fieldPath": "__name__",        "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "needs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "disasterEventId", "order": "ASCENDING" },
+        { "fieldPath": "status",          "order": "ASCENDING" },
+        { "fieldPath": "urgencyScore",    "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "needs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "disasterEventId",     "order": "ASCENDING" },
+        { "fieldPath": "status",              "order": "ASCENDING" },
+        { "fieldPath": "assignedVolunteerId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "needs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "disasterEventId", "order": "ASCENDING" },
+        { "fieldPath": "severity",        "order": "ASCENDING" },
+        { "fieldPath": "urgencyScore",    "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "rawReports",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "reporterId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt",  "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "rawReports",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "disasterEventId", "order": "ASCENDING" },
+        { "fieldPath": "status",          "order": "ASCENDING" },
+        { "fieldPath": "createdAt",       "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "assignments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "volunteerId", "order": "ASCENDING" },
+        { "fieldPath": "status",      "order": "ASCENDING" },
+        { "fieldPath": "createdAt",   "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "assignments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "needId",  "order": "ASCENDING" },
+        { "fieldPath": "status",  "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "role",     "order": "ASCENDING" },
+        { "fieldPath": "district", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "role",        "order": "ASCENDING" },
+        { "fieldPath": "isAvailable", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "imdAlerts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "dedupHash", "order": "ASCENDING" },
+        { "fieldPath": "issuedAt",  "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "disasterEvents",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status",      "order": "ASCENDING" },
+        { "fieldPath": "activatedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "disasterEvents",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "activatedBy", "order": "ASCENDING" },
+        { "fieldPath": "activatedAt", "order": "DESCENDING" },
+        { "fieldPath": "type",        "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

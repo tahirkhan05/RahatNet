@@ -1,0 +1,215 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Deploy to Staging
+#
+# Trigger: push to the `develop` branch (after PR is merged).
+#
+# Steps:
+#   1. Build the Next.js app with staging environment variables.
+#   2. Deploy web to Firebase Hosting staging channel.
+#   3. Deploy Cloud Functions to the staging project.
+#   4. Deploy Firestore + Storage security rules.
+#   5. Run smoke tests against the staging URL.
+#   6. Notify Slack on success or failure.
+#
+# GitHub Environment: staging
+#   - No approval gate (automatic deployment on merge to develop)
+#   - Environment secrets: Firebase staging project credentials
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: Deploy — Staging
+
+on:
+  push:
+    branches:
+      - develop
+
+# Only one staging deploy runs at a time — subsequent pushes queue.
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9.1.0'
+  TURBO_TOKEN:  ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM:   ${{ secrets.TURBO_TEAM }}
+
+jobs:
+  # ───────────────────────────────────────────────────────────────────────────
+  # Job: Build and deploy to staging
+  # ───────────────────────────────────────────────────────────────────────────
+  build-and-deploy:
+    name: Build & Deploy (Staging)
+    runs-on: ubuntu-latest
+    environment: staging
+    timeout-minutes: 30
+    outputs:
+      deployment-url: ${{ steps.deploy-hosting.outputs.details_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # ─────────────────────────────────────────────────────────────────────
+      # Build (staging environment variables)
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Build (staging)
+        run: pnpm turbo run build
+        env:
+          NEXT_PUBLIC_FIREBASE_API_KEY:            ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:        ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID:         ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET:     ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID:             ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+          NEXT_PUBLIC_FIREBASE_DATABASE_URL:       ${{ secrets.NEXT_PUBLIC_FIREBASE_DATABASE_URL }}
+          NEXT_PUBLIC_GOOGLE_MAPS_KEY:             ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_KEY }}
+          NEXT_PUBLIC_FCM_VAPID_KEY:               ${{ secrets.NEXT_PUBLIC_FCM_VAPID_KEY }}
+          NEXT_PUBLIC_APP_URL:                     ${{ secrets.STAGING_APP_URL }}
+          NEXT_PUBLIC_ENV:                         staging
+          NEXT_PUBLIC_COMMIT_SHA:                  ${{ github.sha }}
+          NEXT_PUBLIC_GA_MEASUREMENT_ID:           ${{ secrets.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
+          BIGQUERY_DATASET_ID:                     rahatnet_analytics
+
+      # ─────────────────────────────────────────────────────────────────────
+      # Authenticate to Google Cloud / Firebase
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_STAGING }}
+
+      - name: Setup Firebase CLI
+        run: npm install -g firebase-tools@latest
+
+      # ─────────────────────────────────────────────────────────────────────
+      # Deploy Firestore + Storage security rules
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Deploy security rules
+        run: |
+          firebase deploy \
+            --only firestore:rules,storage \
+            --project ${{ secrets.FIREBASE_PROJECT_ID_STAGING }} \
+            --non-interactive
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      # ─────────────────────────────────────────────────────────────────────
+      # Deploy Cloud Functions (staging project)
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Build Cloud Functions
+        run: pnpm --filter @rahatnet/functions build
+
+      - name: Deploy Cloud Functions
+        run: |
+          firebase deploy \
+            --only functions \
+            --project ${{ secrets.FIREBASE_PROJECT_ID_STAGING }} \
+            --non-interactive
+        env:
+          FIREBASE_TOKEN:                ${{ secrets.FIREBASE_TOKEN }}
+          GEMINI_API_KEY:               ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_CLOUD_PROJECT_ID:      ${{ secrets.FIREBASE_PROJECT_ID_STAGING }}
+          BIGQUERY_DATASET_ID:          rahatnet_analytics
+
+      # ─────────────────────────────────────────────────────────────────────
+      # Deploy to Firebase Hosting — staging preview channel
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Deploy to Firebase Hosting (staging channel)
+        id: deploy-hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken:         ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_STAGING }}
+          projectId:         ${{ secrets.FIREBASE_PROJECT_ID_STAGING }}
+          channelId:         staging
+          # Expire staging channel after 30 days if not refreshed
+          expires:           30d
+          # Tag the deployment with the commit SHA for traceability
+          target:            rahatnet-web
+
+      - name: Print staging URL
+        run: echo "Staging URL → ${{ steps.deploy-hosting.outputs.details_url }}"
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Job: Smoke tests against staging
+  # ───────────────────────────────────────────────────────────────────────────
+  smoke-tests:
+    name: Smoke Tests
+    needs: build-and-deploy
+    uses: ./.github/workflows/_smoke-tests.yml
+    with:
+      deployment-url: ${{ needs.build-and-deploy.outputs.deployment-url }}
+      environment:    staging
+      commit-sha:     ${{ github.sha }}
+    secrets: inherit
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Job: Notify Slack
+  # ───────────────────────────────────────────────────────────────────────────
+  notify:
+    name: Notify Slack
+    runs-on: ubuntu-latest
+    needs:
+      - build-and-deploy
+      - smoke-tests
+    if: always()   # run even when previous jobs fail
+
+    steps:
+      - name: Notify Slack — success
+        if: ${{ needs.smoke-tests.result == 'success' }}
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "✅ *Staging deployed* — RahatNet",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "✅ *Staging deployed successfully*\n*URL:* ${{ needs.build-and-deploy.outputs.deployment-url }}\n*Commit:* `${{ github.sha }}`\n*Branch:* `${{ github.ref_name }}`"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_DEPLOYMENTS }}
+
+      - name: Notify Slack — failure
+        if: ${{ needs.build-and-deploy.result == 'failure' || needs.smoke-tests.result == 'failure' }}
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "❌ *Staging deploy FAILED* — RahatNet",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "❌ *Staging deploy failed*\n*Commit:* `${{ github.sha }}`\n*Branch:* `${{ github.ref_name }}`\n*Run:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_DEPLOYMENTS }}

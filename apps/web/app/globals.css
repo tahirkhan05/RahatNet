@@ -1,0 +1,303 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* === RAHATNET / CLAUDE.AI LIGHT THEME === */
+
+    /* Backgrounds */
+    --background: 0 0% 100%;
+    --background-secondary: 30 20% 97%;
+    --background-tertiary: 30 15% 94%;
+
+    /* Foreground / Text */
+    --foreground: 30 8% 12%;
+    --foreground-secondary: 30 6% 40%;
+    --foreground-tertiary: 30 5% 60%;
+
+    /* Card */
+    --card: 0 0% 100%;
+    --card-foreground: 30 8% 12%;
+
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 30 8% 12%;
+
+    /* Primary — warm orange-brown */
+    --primary: 24 90% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary */
+    --secondary: 30 15% 94%;
+    --secondary-foreground: 30 8% 12%;
+
+    /* Muted */
+    --muted: 30 15% 94%;
+    --muted-foreground: 30 6% 40%;
+
+    /* Accent */
+    --accent: 30 20% 97%;
+    --accent-foreground: 30 8% 12%;
+
+    /* Destructive */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Success */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    /* Warning */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    /* Info — RahatNet blue */
+    --info: 214 90% 37%;
+    --info-foreground: 0 0% 100%;
+
+    /* Border */
+    --border: 30 12% 88%;
+    --border-secondary: 30 10% 80%;
+    --input: 30 12% 88%;
+    --ring: 24 90% 53%;
+
+    /* Border radius */
+    --radius: 0.75rem;
+    --radius-sm: 0.5rem;
+    --radius-lg: 1rem;
+
+    /* RahatNet severity colors */
+    --need-critical: 0 72% 51%;
+    --need-urgent: 38 92% 50%;
+    --need-normal: 214 90% 37%;
+    --need-resolved: 142 71% 45%;
+  }
+
+  .dark {
+    /* === RAHATNET / CLAUDE.AI DARK THEME === */
+    --background: 30 8% 10%;
+    --background-secondary: 30 7% 14%;
+    --background-tertiary: 30 6% 18%;
+
+    --foreground: 30 15% 93%;
+    --foreground-secondary: 30 10% 65%;
+    --foreground-tertiary: 30 8% 45%;
+
+    --card: 30 7% 14%;
+    --card-foreground: 30 15% 93%;
+
+    --popover: 30 7% 14%;
+    --popover-foreground: 30 15% 93%;
+
+    --primary: 24 90% 60%;
+    --primary-foreground: 30 8% 10%;
+
+    --secondary: 30 6% 18%;
+    --secondary-foreground: 30 15% 93%;
+
+    --muted: 30 6% 18%;
+    --muted-foreground: 30 10% 65%;
+
+    --accent: 30 7% 14%;
+    --accent-foreground: 30 15% 93%;
+
+    --destructive: 0 62% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 30 8% 22%;
+    --border-secondary: 30 8% 28%;
+    --input: 30 8% 22%;
+    --ring: 24 90% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* RahatNet flat card — characteristic of the design system */
+.rn-card {
+  @apply rounded-xl border border-border bg-card p-5;
+}
+
+/* Need severity badge classes */
+.badge-critical {
+  @apply border border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200;
+}
+
+.badge-urgent {
+  @apply border border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200;
+}
+
+.badge-normal {
+  @apply border border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200;
+}
+
+.badge-resolved {
+  @apply border border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200;
+}
+
+/* Loading skeleton animation */
+.skeleton {
+  @apply animate-pulse rounded bg-muted;
+}
+
+/* Focus ring consistent with design system */
+.rn-focus {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+}
+
+/* =========================================================================
+   Layout utilities
+   ========================================================================= */
+
+/* Full-bleed war-room layout: header + scrollable split panes */
+.rn-war-room {
+  @apply grid h-screen w-full grid-rows-[auto_1fr] overflow-hidden;
+}
+
+/* Scrollable side panel — used in NeedQueue and ResourceTracker */
+.rn-scroll-panel {
+  @apply overflow-y-auto overscroll-contain;
+  /* Custom thin scrollbar that matches the theme */
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}
+
+.rn-scroll-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.rn-scroll-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.rn-scroll-panel::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-border;
+}
+
+/* =========================================================================
+   Typography utilities
+   ========================================================================= */
+
+.rn-label {
+  @apply text-xs font-medium uppercase tracking-wider text-muted-foreground;
+}
+
+.rn-mono {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* =========================================================================
+   Interactive states
+   ========================================================================= */
+
+/* Pressable card — used for need-type selector tiles in CitizenApp */
+.rn-pressable {
+  @apply cursor-pointer rounded-xl border border-border bg-card transition-all duration-150;
+  @apply hover:border-primary/40 hover:bg-accent hover:shadow-sm;
+  @apply active:scale-[0.98] active:shadow-none;
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  /* Minimum 48px tap target per WCAG 2.5.5 */
+  min-height: 48px;
+  min-width: 48px;
+}
+
+.rn-pressable[aria-selected='true'],
+.rn-pressable[data-selected='true'] {
+  @apply border-primary bg-primary/5 shadow-sm;
+}
+
+/* =========================================================================
+   Severity pulse animations — war room critical indicators
+   ========================================================================= */
+
+/* Red pulsing ring around critical need pins on the map */
+@keyframes severity-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 hsl(var(--need-critical) / 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px hsl(var(--need-critical) / 0);
+  }
+}
+
+.animate-severity-pulse {
+  animation: severity-pulse 2s ease-in-out infinite;
+}
+
+/* Disaster alert banner shimmer */
+@keyframes alert-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-alert-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--destructive) / 0.1) 25%,
+    hsl(var(--destructive) / 0.2) 50%,
+    hsl(var(--destructive) / 0.1) 75%
+  );
+  background-size: 200% 100%;
+  animation: alert-shimmer 2s linear infinite;
+}
+
+/* =========================================================================
+   Offline & loading states
+   ========================================================================= */
+
+/* Shimmer skeleton used while data is loading */
+@keyframes shimmer {
+  0% { background-position: -468px 0; }
+  100% { background-position: 468px 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 25%,
+    hsl(var(--muted-foreground) / 0.08) 50%,
+    hsl(var(--muted)) 75%
+  );
+  background-size: 936px 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* =========================================================================
+   Map overlay classes
+   ========================================================================= */
+
+/* Semi-transparent panel overlaid on the map (layer toggles, legend) */
+.rn-map-panel {
+  @apply rounded-lg border border-border/60 bg-background/90 p-3 shadow-md backdrop-blur-sm;
+}
+
+/* =========================================================================
+   Print styles — resource report PDF export helper
+   ========================================================================= */
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    @apply bg-white text-black;
+  }
+
+  .rn-card {
+    @apply border border-gray-300;
+    page-break-inside: avoid;
+  }
+}
