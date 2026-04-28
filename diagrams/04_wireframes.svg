@@ -1,0 +1,325 @@
+<svg viewBox="0 0 1060 680" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif">
+  <!-- Background -->
+  <rect width="1060" height="680" fill="#F7F6F3" rx="16"/>
+
+  <!-- Title -->
+  <text x="530" y="34" text-anchor="middle" font-size="18" font-weight="700" fill="#1E1D1A">RahatNet — Interface Wireframes</text>
+  <text x="530" y="54" text-anchor="middle" font-size="12" fill="#69675F">Three role-optimised interfaces — Citizen · Volunteer · Coordinator War Room</text>
+
+  <!-- ===================== SCREEN 1: CITIZEN NEED TYPE ===================== -->
+  <!-- Phone frame -->
+  <rect x="30" y="72" width="170" height="300" rx="16" fill="#FFFFFF" stroke="#E2E0D9" stroke-width="2"/>
+  <rect x="42" y="72" width="146" height="14" rx="4" fill="#E2E0D9"/>
+  <!-- status bar notch -->
+  <rect x="80" y="74" width="60" height="8" rx="4" fill="#9C9A92"/>
+
+  <!-- Header -->
+  <rect x="30" y="86" width="170" height="28" fill="#7B1C1C"/>
+  <text x="115" y="105" text-anchor="middle" font-size="10" font-weight="600" fill="#FFFFFF">Report a Need</text>
+
+  <!-- Subheader -->
+  <text x="115" y="128" text-anchor="middle" font-size="9" fill="#69675F">What do you need help with?</text>
+
+  <!-- 6 need type cards in 2x3 grid -->
+  <!-- Row 1 -->
+  <rect x="40" y="134" width="68" height="52" rx="8" fill="#FAECE7" stroke="#D4856A" stroke-width="1"/>
+  <text x="74" y="156" text-anchor="middle" font-size="16">🆘</text>
+  <text x="74" y="178" text-anchor="middle" font-size="9" font-weight="600" fill="#7B1C1C">RESCUE</text>
+
+  <rect x="118" y="134" width="68" height="52" rx="8" fill="#FAEEDA" stroke="#D4A06A" stroke-width="1"/>
+  <text x="152" y="156" text-anchor="middle" font-size="16">🍱</text>
+  <text x="152" y="178" text-anchor="middle" font-size="9" font-weight="600" fill="#854F0B">FOOD</text>
+
+  <!-- Row 2 -->
+  <rect x="40" y="194" width="68" height="52" rx="8" fill="#EBF5FF" stroke="#5B9BD5" stroke-width="1"/>
+  <text x="74" y="216" text-anchor="middle" font-size="16">💊</text>
+  <text x="74" y="236" text-anchor="middle" font-size="9" font-weight="600" fill="#0C447C">MEDICINE</text>
+
+  <rect x="118" y="194" width="68" height="52" rx="8" fill="#EAF3DE" stroke="#7BBD4F" stroke-width="1"/>
+  <text x="152" y="216" text-anchor="middle" font-size="16">🏠</text>
+  <text x="152" y="236" text-anchor="middle" font-size="9" font-weight="600" fill="#27500A">SHELTER</text>
+
+  <!-- Row 3 -->
+  <rect x="40" y="254" width="68" height="52" rx="8" fill="#EEEDFE" stroke="#9B8FE8" stroke-width="1"/>
+  <text x="74" y="276" text-anchor="middle" font-size="16">❤️</text>
+  <text x="74" y="296" text-anchor="middle" font-size="9" font-weight="600" fill="#3C3489">MENTAL</text>
+
+  <rect x="118" y="254" width="68" height="52" rx="8" fill="#F1EFE8" stroke="#C0BD9A" stroke-width="1"/>
+  <text x="152" y="276" text-anchor="middle" font-size="16">🏗️</text>
+  <text x="152" y="296" text-anchor="middle" font-size="9" font-weight="600" fill="#4A4030">INFRA</text>
+
+  <!-- Step indicator -->
+  <text x="115" y="325" text-anchor="middle" font-size="9" fill="#9C9A92">Step 1 of 3</text>
+  <!-- dots -->
+  <circle cx="103" cy="338" r="4" fill="#7B1C1C"/>
+  <circle cx="115" cy="338" r="3" fill="#E2E0D9"/>
+  <circle cx="127" cy="338" r="3" fill="#E2E0D9"/>
+
+  <!-- Screen 1 label -->
+  <rect x="30" y="376" width="170" height="22" rx="6" fill="#7B1C1C"/>
+  <text x="115" y="391" text-anchor="middle" font-size="10" font-weight="600" fill="#FFFFFF">Citizen — Select Need Type</text>
+
+  <!-- ===================== SCREEN 2: CITIZEN REPORT DETAIL ===================== -->
+  <rect x="220" y="72" width="170" height="300" rx="16" fill="#FFFFFF" stroke="#E2E0D9" stroke-width="2"/>
+  <rect x="232" y="72" width="146" height="14" rx="4" fill="#E2E0D9"/>
+  <rect x="270" y="74" width="60" height="8" rx="4" fill="#9C9A92"/>
+
+  <rect x="220" y="86" width="170" height="28" fill="#7B1C1C"/>
+  <text x="305" y="100" text-anchor="middle" font-size="8" fill="#FAECE7">← Step 1</text>
+  <text x="305" y="110" text-anchor="middle" font-size="10" font-weight="600" fill="#FFFFFF">Describe the Situation</text>
+
+  <!-- Location chip -->
+  <rect x="230" y="122" width="150" height="22" rx="11" fill="#F7F6F3" stroke="#E2E0D9" stroke-width="1"/>
+  <text x="248" y="137" font-size="9" fill="#69675F">📍 Aluva Colony, EKM</text>
+  <text x="368" y="137" text-anchor="end" font-size="9" fill="#854F0B">Edit</text>
+
+  <!-- Voice button -->
+  <rect x="240" y="152" width="130" height="48" rx="24" fill="#7B1C1C"/>
+  <text x="305" y="172" text-anchor="middle" font-size="18" fill="#FFFFFF">🎤</text>
+  <text x="305" y="192" text-anchor="middle" font-size="9" font-weight="600" fill="#FFFFFF">Hold to speak</text>
+
+  <!-- Text fallback -->
+  <rect x="230" y="208" width="150" height="28" rx="6" fill="#F7F6F3" stroke="#E2E0D9" stroke-width="1"/>
+  <text x="240" y="226" font-size="9" fill="#9C9A92">Or type here...</text>
+
+  <!-- Photo -->
+  <rect x="230" y="244" width="68" height="36" rx="6" fill="#F7F6F3" stroke="#E2E0D9" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="264" y="258" text-anchor="middle" font-size="12">📷</text>
+  <text x="264" y="274" text-anchor="middle" font-size="8" fill="#69675F">Add photo</text>
+
+  <!-- People count -->
+  <rect x="308" y="244" width="72" height="36" rx="6" fill="#F7F6F3" stroke="#E2E0D9" stroke-width="1"/>
+  <text x="344" y="258" text-anchor="middle" font-size="9" fill="#69675F">People</text>
+  <text x="316" y="274" font-size="9" fill="#69675F">−</text>
+  <text x="344" y="274" text-anchor="middle" font-size="11" font-weight="700" fill="#1E1D1A">4</text>
+  <text x="372" y="274" text-anchor="end" font-size="9" fill="#69675F">+</text>
+
+  <!-- Vulnerable checkbox -->
+  <rect x="230" y="288" width="12" height="12" rx="2" fill="#7B1C1C"/>
+  <text x="248" y="299" font-size="9" fill="#1E1D1A">Elderly / child / disabled present</text>
+
+  <!-- Submit -->
+  <rect x="230" y="308" width="150" height="26" rx="13" fill="#7B1C1C"/>
+  <text x="305" y="325" text-anchor="middle" font-size="10" font-weight="600" fill="#FFFFFF">Submit Report</text>
+
+  <rect x="220" y="376" width="170" height="22" rx="6" fill="#7B1C1C"/>
+  <text x="305" y="391" text-anchor="middle" font-size="10" font-weight="600" fill="#FFFFFF">Citizen — Report Detail</text>
+
+  <!-- ===================== SCREEN 3: VOLUNTEER TASK ===================== -->
+  <rect x="410" y="72" width="170" height="300" rx="16" fill="#FFFFFF" stroke="#E2E0D9" stroke-width="2"/>
+  <rect x="422" y="72" width="146" height="14" rx="4" fill="#E2E0D9"/>
+  <rect x="460" y="74" width="60" height="8" rx="4" fill="#9C9A92"/>
+
+  <!-- Full-screen task overlay feel -->
+  <rect x="410" y="86" width="170" height="60" fill="#3C3489"/>
+  <text x="495" y="104" text-anchor="middle" font-size="9" fill="#C4C0F5">TASK ASSIGNED</text>
+  <text x="495" y="120" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">🆘 RESCUE</text>
+  <text x="495" y="136" text-anchor="middle" font-size="9" fill="#C4C0F5">Aluva Colony, Sector 3</text>
+
+  <!-- Distance + ETA -->
+  <rect x="420" y="152" width="68" height="28" rx="6" fill="#EEEDFE" stroke="#9B8FE8" stroke-width="1"/>
+  <text x="454" y="163" text-anchor="middle" font-size="9" font-weight="600" fill="#3C3489">1.2 km</text>
+  <text x="454" y="175" text-anchor="middle" font-size="8" fill="#26215C">distance</text>
+
+  <rect x="500" y="152" width="68" height="28" rx="6" fill="#EEEDFE" stroke="#9B8FE8" stroke-width="1"/>
+  <text x="534" y="163" text-anchor="middle" font-size="9" font-weight="600" fill="#3C3489">~8 min</text>
+  <text x="534" y="175" text-anchor="middle" font-size="8" fill="#26215C">ETA</text>
+
+  <!-- Description -->
+  <text x="420" y="200" font-size="9" fill="#1E1D1A">4 people, elderly woman present</text>
+  <text x="420" y="214" font-size="9" fill="#69675F">Rajan K. · +91 98xxx xxxxx</text>
+
+  <!-- Warning badge -->
+  <rect x="420" y="222" width="80" height="16" rx="8" fill="#FAECE7" stroke="#D4856A" stroke-width="1"/>
+  <text x="460" y="234" text-anchor="middle" font-size="8" fill="#7B1C1C">⚠ Vulnerable present</text>
+
+  <!-- Accept timer -->
+  <text x="495" y="254" text-anchor="middle" font-size="8" fill="#C0392B">Auto-decline in 60s</text>
+  <!-- timer arc (simplified) -->
+  <circle cx="495" cy="244" r="10" fill="none" stroke="#E2E0D9" stroke-width="2"/>
+  <circle cx="495" cy="244" r="10" fill="none" stroke="#C0392B" stroke-width="2" stroke-dasharray="42 63" stroke-dashoffset="-15"/>
+
+  <!-- Navigate button -->
+  <rect x="420" y="262" width="150" height="28" rx="14" fill="#27500A"/>
+  <text x="495" y="280" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">NAVIGATE →</text>
+
+  <!-- Secondary buttons -->
+  <rect x="420" y="296" width="70" height="22" rx="6" fill="#EAF3DE" stroke="#7BBD4F" stroke-width="1"/>
+  <text x="455" y="311" text-anchor="middle" font-size="8" fill="#27500A">Mark Done</text>
+
+  <rect x="500" y="296" width="70" height="22" rx="6" fill="#F7F6F3" stroke="#E2E0D9" stroke-width="1"/>
+  <text x="535" y="311" text-anchor="middle" font-size="8" fill="#69675F">Report Issue</text>
+
+  <rect x="410" y="376" width="170" height="22" rx="6" fill="#3C3489"/>
+  <text x="495" y="391" text-anchor="middle" font-size="10" font-weight="600" fill="#FFFFFF">Volunteer — Task Accepted</text>
+
+  <!-- ===================== SCREEN 4: WAR ROOM (wide) ===================== -->
+  <rect x="600" y="72" width="440" height="300" rx="12" fill="#FFFFFF" stroke="#E2E0D9" stroke-width="2"/>
+
+  <!-- War Room header bar -->
+  <rect x="600" y="72" width="440" height="30" rx="12" fill="#1A3A6B"/>
+  <rect x="600" y="88" width="440" height="14" fill="#1A3A6B"/>
+  <text x="720" y="91" font-size="9" fill="#A8C4E8">Kerala Flood Alert</text>
+  <rect x="790" y="80" width="46" height="14" rx="7" fill="#C0392B"/>
+  <text x="813" y="91" text-anchor="middle" font-size="8" font-weight="700" fill="#FFFFFF">ACTIVE</text>
+  <text x="900" y="91" text-anchor="end" font-size="8" fill="#A8C4E8">Updated: 14:32 IST</text>
+
+  <!-- Left panel: Need Queue -->
+  <rect x="600" y="102" width="145" height="270" rx="0" fill="#F7F6F3" stroke="#E2E0D9" stroke-width="0.5"/>
+  <text x="610" y="118" font-size="9" font-weight="600" fill="#1E1D1A">Priority Queue</text>
+  <text x="720" y="118" text-anchor="end" font-size="8" fill="#69675F">47 needs</text>
+
+  <!-- Need item 1 CRITICAL -->
+  <rect x="604" y="122" width="137" height="42" rx="4" fill="#FFFFFF" stroke="#E2E0D9" stroke-width="0.5"/>
+  <rect x="604" y="122" width="4" height="42" rx="2" fill="#C0392B"/>
+  <rect x="612" y="126" width="38" height="12" rx="6" fill="#FAECE7"/>
+  <text x="631" y="136" text-anchor="middle" font-size="7" font-weight="700" fill="#C0392B">CRITICAL</text>
+  <text x="612" y="150" font-size="8" font-weight="600" fill="#1E1D1A">Rescue · Aluva</text>
+  <text x="612" y="160" font-size="7" fill="#69675F">Score 9.2 · 4 people</text>
+  <rect x="680" y="126" width="52" height="14" rx="4" fill="#1A3A6B"/>
+  <text x="706" y="137" text-anchor="middle" font-size="7" font-weight="600" fill="#FFFFFF">Assign →</text>
+
+  <!-- Need item 2 CRITICAL -->
+  <rect x="604" y="168" width="137" height="38" rx="4" fill="#FFFFFF" stroke="#E2E0D9" stroke-width="0.5"/>
+  <rect x="604" y="168" width="4" height="38" rx="2" fill="#C0392B"/>
+  <rect x="612" y="172" width="38" height="12" rx="6" fill="#FAECE7"/>
+  <text x="631" y="182" text-anchor="middle" font-size="7" font-weight="700" fill="#C0392B">CRITICAL</text>
+  <text x="612" y="196" font-size="8" font-weight="600" fill="#1E1D1A">Rescue · Chalakudy</text>
+  <rect x="680" y="172" width="52" height="14" rx="4" fill="#1A3A6B"/>
+  <text x="706" y="183" text-anchor="middle" font-size="7" font-weight="600" fill="#FFFFFF">Assign →</text>
+
+  <!-- Need item 3 URGENT -->
+  <rect x="604" y="210" width="137" height="38" rx="4" fill="#FFFFFF" stroke="#E2E0D9" stroke-width="0.5"/>
+  <rect x="604" y="210" width="4" height="38" rx="2" fill="#E67E22"/>
+  <rect x="612" y="214" width="34" height="12" rx="6" fill="#FAEEDA"/>
+  <text x="629" y="224" text-anchor="middle" font-size="7" font-weight="700" fill="#E67E22">URGENT</text>
+  <text x="612" y="238" font-size="8" fill="#1E1D1A">Food · Perumbavoor</text>
+
+  <!-- Need item 4 -->
+  <rect x="604" y="252" width="137" height="38" rx="4" fill="#FFFFFF" stroke="#E2E0D9" stroke-width="0.5"/>
+  <rect x="604" y="252" width="4" height="38" rx="2" fill="#2980B9"/>
+  <rect x="612" y="256" width="28" height="12" rx="6" fill="#EBF5FF"/>
+  <text x="626" y="266" text-anchor="middle" font-size="7" font-weight="700" fill="#1A3A6B">NORMAL</text>
+  <text x="612" y="280" font-size="8" fill="#1E1D1A">Shelter · Muvattupuzha</text>
+
+  <!-- filter row -->
+  <text x="610" y="302" font-size="7" fill="#9C9A92">Filter:</text>
+  <rect x="630" y="294" width="24" height="12" rx="6" fill="#FAECE7"/>
+  <text x="642" y="303" text-anchor="middle" font-size="7" fill="#7B1C1C">All</text>
+  <rect x="658" y="294" width="30" height="12" rx="6" fill="#F7F6F3" stroke="#E2E0D9" stroke-width="0.5"/>
+  <text x="673" y="303" text-anchor="middle" font-size="7" fill="#69675F">Crit.</text>
+  <rect x="692" y="294" width="30" height="12" rx="6" fill="#F7F6F3" stroke="#E2E0D9" stroke-width="0.5"/>
+  <text x="707" y="303" text-anchor="middle" font-size="7" fill="#69675F">Urgnt</text>
+  <rect x="726" y="294" width="30" height="12" rx="6" fill="#F7F6F3" stroke="#E2E0D9" stroke-width="0.5"/>
+  <text x="741" y="303" text-anchor="middle" font-size="7" fill="#69675F">Done</text>
+
+  <!-- Center: Map -->
+  <rect x="745" y="102" width="200" height="210" rx="4" fill="#E8F4E8" stroke="#C8DEC8" stroke-width="1"/>
+  <!-- Map grid lines -->
+  <line x1="745" y1="140" x2="945" y2="140" stroke="#C8DEC8" stroke-width="0.5"/>
+  <line x1="745" y1="178" x2="945" y2="178" stroke="#C8DEC8" stroke-width="0.5"/>
+  <line x1="745" y1="216" x2="945" y2="216" stroke="#C8DEC8" stroke-width="0.5"/>
+  <line x1="745" y1="254" x2="945" y2="254" stroke="#C8DEC8" stroke-width="0.5"/>
+  <line x1="790" y1="102" x2="790" y2="312" stroke="#C8DEC8" stroke-width="0.5"/>
+  <line x1="845" y1="102" x2="845" y2="312" stroke="#C8DEC8" stroke-width="0.5"/>
+  <line x1="900" y1="102" x2="900" y2="312" stroke="#C8DEC8" stroke-width="0.5"/>
+  <!-- Map label -->
+  <text x="845" y="120" text-anchor="middle" font-size="8" fill="#27500A">LIVE HEATMAP</text>
+  <!-- Pins -->
+  <circle cx="810" cy="155" r="10" fill="#C0392B" opacity="0.35"/>
+  <circle cx="810" cy="155" r="6" fill="#C0392B" opacity="0.6"/>
+  <circle cx="810" cy="155" r="3" fill="#C0392B"/>
+  <circle cx="860" cy="190" r="8" fill="#E67E22" opacity="0.3"/>
+  <circle cx="860" cy="190" r="5" fill="#E67E22" opacity="0.6"/>
+  <circle cx="860" cy="190" r="2.5" fill="#E67E22"/>
+  <circle cx="885" cy="160" r="6" fill="#E67E22" opacity="0.3"/>
+  <circle cx="885" cy="160" r="3.5" fill="#E67E22" opacity="0.6"/>
+  <circle cx="885" cy="160" r="2" fill="#E67E22"/>
+  <circle cx="825" cy="230" r="5" fill="#27AE60" opacity="0.6"/>
+  <circle cx="825" cy="230" r="2.5" fill="#27AE60"/>
+  <circle cx="905" cy="240" r="5" fill="#2980B9" opacity="0.6"/>
+  <circle cx="905" cy="240" r="2.5" fill="#2980B9"/>
+  <!-- volunteer dot -->
+  <circle cx="850" cy="145" r="5" fill="#3C3489"/>
+  <text x="858" y="142" font-size="7" fill="#3C3489">Rajan K.</text>
+  <!-- Map legend -->
+  <circle cx="752" cy="285" r="4" fill="#C0392B"/>
+  <text x="760" y="289" font-size="7" fill="#1E1D1A">Critical</text>
+  <circle cx="790" cy="285" r="4" fill="#E67E22"/>
+  <text x="798" y="289" font-size="7" fill="#1E1D1A">Urgent</text>
+  <circle cx="830" cy="285" r="4" fill="#27AE60"/>
+  <text x="838" y="289" font-size="7" fill="#1E1D1A">Resolved</text>
+  <circle cx="872" cy="285" r="4" fill="#3C3489"/>
+  <text x="880" y="289" font-size="7" fill="#1E1D1A">Volunteer</text>
+
+  <!-- Map layer toggles -->
+  <rect x="748" y="298" width="36" height="12" rx="4" fill="#1A3A6B"/>
+  <text x="766" y="307" text-anchor="middle" font-size="7" fill="#FFFFFF">Needs</text>
+  <rect x="788" y="298" width="40" height="12" rx="4" fill="#F7F6F3" stroke="#E2E0D9" stroke-width="0.5"/>
+  <text x="808" y="307" text-anchor="middle" font-size="7" fill="#69675F">Heatmap</text>
+  <rect x="832" y="298" width="46" height="12" rx="4" fill="#F7F6F3" stroke="#E2E0D9" stroke-width="0.5"/>
+  <text x="855" y="307" text-anchor="middle" font-size="7" fill="#69675F">Volunteers</text>
+  <rect x="882" y="298" width="52" height="12" rx="4" fill="#F7F6F3" stroke="#E2E0D9" stroke-width="0.5"/>
+  <text x="908" y="307" text-anchor="middle" font-size="7" fill="#69675F">Resources</text>
+
+  <!-- Right panel: stats -->
+  <rect x="600" y="316" width="780" height="56" rx="0" fill="#F7F6F3" stroke="#E2E0D9" stroke-width="0.5"/>
+  <!-- 4 stat cards -->
+  <rect x="606" y="320" width="90" height="46" rx="6" fill="#FFFFFF" stroke="#E2E0D9" stroke-width="1"/>
+  <text x="651" y="340" text-anchor="middle" font-size="18" font-weight="700" fill="#1E1D1A">47</text>
+  <text x="651" y="356" text-anchor="middle" font-size="8" fill="#69675F">Total Needs</text>
+  <text x="689" y="333" font-size="8" fill="#27AE60">↑ 12</text>
+
+  <rect x="704" y="320" width="90" height="46" rx="6" fill="#FFFFFF" stroke="#E2E0D9" stroke-width="1"/>
+  <text x="749" y="340" text-anchor="middle" font-size="18" font-weight="700" fill="#27AE60">18</text>
+  <text x="749" y="356" text-anchor="middle" font-size="8" fill="#69675F">Resolved</text>
+
+  <rect x="802" y="320" width="90" height="46" rx="6" fill="#FFFFFF" stroke="#E2E0D9" stroke-width="1"/>
+  <text x="847" y="340" text-anchor="middle" font-size="18" font-weight="700" fill="#3C3489">8</text>
+  <text x="847" y="356" text-anchor="middle" font-size="8" fill="#69675F">Active Vols.</text>
+
+  <rect x="900" y="320" width="90" height="46" rx="6" fill="#FFFFFF" stroke="#E2E0D9" stroke-width="1"/>
+  <text x="945" y="340" text-anchor="middle" font-size="18" font-weight="700" fill="#1A3A6B">6.2</text>
+  <text x="945" y="356" text-anchor="middle" font-size="8" fill="#69675F">Avg min response</text>
+  <text x="975" y="335" font-size="7" fill="#27AE60">✓ &lt;8</text>
+
+  <!-- War room label -->
+  <rect x="600" y="376" width="440" height="22" rx="6" fill="#1A3A6B"/>
+  <text x="820" y="391" text-anchor="middle" font-size="10" font-weight="600" fill="#FFFFFF">Coordinator — War Room Dashboard (React · Google Maps · Real-time)</text>
+
+  <!-- =================== BOTTOM ROW: Offline + Status =================== -->
+  <!-- Offline banner -->
+  <rect x="30" y="410" width="170" height="70" rx="10" fill="#FFFFFF" stroke="#E2E0D9" stroke-width="1.5"/>
+  <rect x="30" y="410" width="170" height="20" rx="10" fill="#FAEEDA"/>
+  <rect x="30" y="421" width="170" height="9" fill="#FAEEDA"/>
+  <text x="115" y="425" text-anchor="middle" font-size="9" font-weight="600" fill="#854F0B">Offline Mode Active</text>
+  <text x="115" y="442" text-anchor="middle" font-size="8" fill="#69675F">3 reports queued</text>
+  <text x="115" y="456" text-anchor="middle" font-size="8" fill="#69675F">Will sync when connected</text>
+  <rect x="55" y="462" width="110" height="12" rx="6" fill="#FAEEDA" stroke="#D4A06A" stroke-width="1"/>
+  <text x="110" y="472" text-anchor="middle" font-size="8" fill="#854F0B">Works on 2G / offline</text>
+  <text x="115" y="496" text-anchor="middle" font-size="9" font-weight="600" fill="#854F0B">Citizen — Offline Mode</text>
+
+  <!-- Status tracker -->
+  <rect x="220" y="410" width="170" height="70" rx="10" fill="#FFFFFF" stroke="#E2E0D9" stroke-width="1.5"/>
+  <text x="305" y="428" text-anchor="middle" font-size="9" font-weight="600" fill="#1E1D1A">Report #1842 — Status</text>
+  <!-- progress steps -->
+  <circle cx="235" cy="448" r="5" fill="#7B1C1C"/>
+  <text x="245" y="452" font-size="7" fill="#1E1D1A">Submitted</text>
+  <line x1="280" y1="448" x2="295" y2="448" stroke="#7B1C1C" stroke-width="1.5"/>
+  <circle cx="300" cy="448" r="5" fill="#7B1C1C"/>
+  <text x="308" y="452" font-size="7" fill="#1E1D1A">Verified</text>
+  <line x1="340" y1="448" x2="356" y2="448" stroke="#E2E0D9" stroke-width="1.5"/>
+  <circle cx="360" cy="448" r="5" fill="#E2E0D9"/>
+  <text x="368" y="452" font-size="7" fill="#9C9A92">Assigned</text>
+  <text x="305" y="468" text-anchor="middle" font-size="8" fill="#69675F">Push: Volunteer assigned — ETA 8 min</text>
+  <text x="305" y="496" text-anchor="middle" font-size="9" font-weight="600" fill="#854F0B">Citizen — Status Tracker</text>
+
+  <!-- Bottom note -->
+  <rect x="30" y="500" width="1000" height="40" rx="10" fill="#1A3A6B"/>
+  <text x="530" y="516" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">All three interfaces share one design language — minimal, high-contrast, works on Android 6+ on 2G networks</text>
+  <text x="530" y="532" text-anchor="middle" font-size="10" fill="#A8C4E8">Citizen: 30-second report flow  ·  Volunteer: one-tap accept + Maps nav  ·  Coordinator: full real-time war room</text>
+
+  <!-- Alignment note -->
+  <rect x="30" y="548" width="1000" height="28" rx="8" fill="#EAF3DE" stroke="#7BBD4F" stroke-width="1"/>
+  <text x="530" y="567" text-anchor="middle" font-size="10" font-weight="600" fill="#27500A">Problem statement alignment: Citizen app replaces paper surveys  ·  War room shows "biggest problems clearly"  ·  Volunteer app enables "quick matching to specific tasks"</text>
+</svg>

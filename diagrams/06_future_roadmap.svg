@@ -1,0 +1,132 @@
+<svg viewBox="0 0 1000 580" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif">
+  <!-- Background -->
+  <rect width="1000" height="580" fill="#F7F6F3" rx="16"/>
+
+  <!-- Title -->
+  <text x="500" y="34" text-anchor="middle" font-size="18" font-weight="700" fill="#1E1D1A">RahatNet — Impact Today · Vision Tomorrow</text>
+  <text x="500" y="54" text-anchor="middle" font-size="12" fill="#69675F">Three phases: MVP shipped · Predictive AI · Permanent resilience platform</text>
+
+  <!-- ====================== TIMELINE LINE ====================== -->
+  <line x1="80" y1="128" x2="920" y2="128" stroke="#E2E0D9" stroke-width="3"/>
+
+  <!-- Phase dots -->
+  <circle cx="200" cy="128" r="16" fill="#7B1C1C" stroke="#FFFFFF" stroke-width="3"/>
+  <text x="200" y="134" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">1</text>
+
+  <circle cx="500" cy="128" r="16" fill="#1A3A6B" stroke="#FFFFFF" stroke-width="3"/>
+  <text x="500" y="134" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">2</text>
+
+  <circle cx="800" cy="128" r="16" fill="#27500A" stroke="#FFFFFF" stroke-width="3"/>
+  <text x="800" y="134" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">3</text>
+
+  <!-- Phase labels on timeline -->
+  <text x="200" y="104" text-anchor="middle" font-size="10" font-weight="600" fill="#7B1C1C">NOW — 2026</text>
+  <text x="500" y="104" text-anchor="middle" font-size="10" font-weight="600" fill="#1A3A6B">3–6 months post-launch</text>
+  <text x="800" y="104" text-anchor="middle" font-size="10" font-weight="600" fill="#27500A">Year 2 onwards</text>
+
+  <!-- ====================== PHASE 1 CARD ====================== -->
+  <rect x="30" y="154" width="330" height="260" rx="12" fill="#FFFFFF" stroke="#D4856A" stroke-width="1.5"/>
+  <rect x="30" y="154" width="330" height="40" rx="12" fill="#7B1C1C"/>
+  <rect x="30" y="180" width="330" height="14" fill="#7B1C1C"/>
+  <text x="195" y="175" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">Phase 1 — MVP Submitted</text>
+
+  <text x="50" y="214" font-size="11" font-weight="600" fill="#1E1D1A">What's built and shipped:</text>
+
+  <!-- Feature list with checkmarks -->
+  <circle cx="52" cy="232" r="6" fill="#27AE60"/>
+  <text x="62" y="237" font-size="9" fill="#1E1D1A">Citizen app: voice/photo need reporting, 8 languages</text>
+  <circle cx="52" cy="252" r="6" fill="#27AE60"/>
+  <text x="62" y="257" font-size="9" fill="#1E1D1A">Gemini AI de-duplication — 200 reports → 1 need</text>
+  <circle cx="52" cy="272" r="6" fill="#27AE60"/>
+  <text x="62" y="277" font-size="9" fill="#1E1D1A">Urgency scoring 1–10 (Gemini + Vertex AI)</text>
+  <circle cx="52" cy="292" r="6" fill="#27AE60"/>
+  <text x="62" y="297" font-size="9" fill="#1E1D1A">War room: live heatmap + AI priority queue</text>
+  <circle cx="52" cy="312" r="6" fill="#27AE60"/>
+  <text x="62" y="317" font-size="9" fill="#1E1D1A">Volunteer app: task + Google Maps navigation</text>
+  <circle cx="52" cy="332" r="6" fill="#27AE60"/>
+  <text x="62" y="337" font-size="9" fill="#1E1D1A">Proactive IMD trigger — activates pre-flood</text>
+  <circle cx="52" cy="352" r="6" fill="#27AE60"/>
+  <text x="62" y="357" font-size="9" fill="#1E1D1A">Offline-first PWA — 2G flood zones</text>
+  <circle cx="52" cy="372" r="6" fill="#27AE60"/>
+  <text x="62" y="377" font-size="9" fill="#1E1D1A">Kerala 2018 simulation — live demo ready</text>
+
+  <!-- Impact metrics for Phase 1 -->
+  <rect x="40" y="390" width="300" height="14" rx="4" fill="#FAECE7"/>
+  <text x="190" y="401" text-anchor="middle" font-size="9" font-weight="600" fill="#7B1C1C">Target impact: &lt;8 min response · 70% less duplication · 95% coverage</text>
+
+  <!-- ====================== PHASE 2 CARD ====================== -->
+  <rect x="335" y="154" width="330" height="260" rx="12" fill="#FFFFFF" stroke="#5B9BD5" stroke-width="1.5"/>
+  <rect x="335" y="154" width="330" height="40" rx="12" fill="#1A3A6B"/>
+  <rect x="335" y="180" width="330" height="14" fill="#1A3A6B"/>
+  <text x="500" y="175" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">Phase 2 — Predictive Pre-positioning</text>
+
+  <text x="355" y="214" font-size="11" font-weight="600" fill="#1E1D1A">What gets added:</text>
+
+  <rect x="345" y="222" width="305" height="58" rx="8" fill="#EBF5FF"/>
+  <text x="498" y="238" text-anchor="middle" font-size="10" font-weight="600" fill="#0C447C">Vertex AI Predictive Model</text>
+  <text x="355" y="254" font-size="9" fill="#1A3A6B">Trained on historical IMD flood data + disaster reports</text>
+  <text x="355" y="268" font-size="9" fill="#1A3A6B">Predicts impact zones 6 hours before flood peak</text>
+
+  <rect x="345" y="288" width="305" height="42" rx="8" fill="#EBF5FF"/>
+  <text x="498" y="304" text-anchor="middle" font-size="10" font-weight="600" fill="#0C447C">Automated Pre-positioning</text>
+  <text x="355" y="320" font-size="9" fill="#1A3A6B">Boats, food packets, medicine kits staged at optimal points</text>
+
+  <rect x="345" y="338" width="305" height="42" rx="8" fill="#EBF5FF"/>
+  <text x="498" y="354" text-anchor="middle" font-size="10" font-weight="600" fill="#0C447C">Volunteer Pre-activation</text>
+  <text x="355" y="370" font-size="9" fill="#1A3A6B">Skilled volunteers notified and in position before flood peak</text>
+
+  <rect x="345" y="390" width="305" height="14" rx="4" fill="#EBF5FF"/>
+  <text x="498" y="401" text-anchor="middle" font-size="9" font-weight="600" fill="#1A3A6B">Target: cut response time from 8 minutes to under 4 minutes</text>
+
+  <!-- ====================== PHASE 3 CARD ====================== -->
+  <rect x="640" y="154" width="330" height="260" rx="12" fill="#FFFFFF" stroke="#7BBD4F" stroke-width="1.5"/>
+  <rect x="640" y="154" width="330" height="40" rx="12" fill="#27500A"/>
+  <rect x="640" y="180" width="330" height="14" fill="#27500A"/>
+  <text x="805" y="175" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">Phase 3 — Permanent Resilience Platform</text>
+
+  <text x="660" y="214" font-size="11" font-weight="600" fill="#1E1D1A">Beyond disasters:</text>
+
+  <rect x="650" y="222" width="305" height="42" rx="8" fill="#EAF3DE"/>
+  <text x="803" y="238" text-anchor="middle" font-size="10" font-weight="600" fill="#27500A">Year-round Community Intelligence</text>
+  <text x="660" y="254" font-size="9" fill="#173404">NGOs log ongoing needs · Skills maps continuously updated</text>
+
+  <rect x="650" y="272" width="305" height="42" rx="8" fill="#EAF3DE"/>
+  <text x="803" y="288" text-anchor="middle" font-size="10" font-weight="600" fill="#27500A">Instant Disaster Activation</text>
+  <text x="660" y="304" font-size="9" fill="#173404">No re-registration needed · Platform pre-loaded and ready</text>
+
+  <rect x="650" y="322" width="305" height="42" rx="8" fill="#EAF3DE"/>
+  <text x="803" y="338" text-anchor="middle" font-size="10" font-weight="600" fill="#27500A">NDRF Open API Integration</text>
+  <text x="660" y="354" font-size="9" fill="#173404">Plugs into national disaster response system</text>
+
+  <rect x="650" y="372" width="305" height="30" rx="8" fill="#EAF3DE"/>
+  <text x="803" y="384" text-anchor="middle" font-size="9" font-weight="600" fill="#27500A">NGO subscription model — self-sustaining platform</text>
+  <text x="803" y="396" text-anchor="middle" font-size="9" fill="#173404">₹5,000/month per NGO · ₹50k/activation for government</text>
+
+  <!-- ====================== SDG ROW ====================== -->
+  <rect x="30" y="428" width="940" height="60" rx="10" fill="#FFFFFF" stroke="#E2E0D9" stroke-width="1"/>
+  <text x="500" y="446" text-anchor="middle" font-size="11" font-weight="600" fill="#1E1D1A">UN Sustainable Development Goals Alignment</text>
+
+  <!-- SDG 11 -->
+  <rect x="60" y="452" width="180" height="26" rx="6" fill="#FD9D24" opacity="0.15"/>
+  <rect x="60" y="452" width="4" height="26" rx="2" fill="#FD9D24"/>
+  <text x="74" y="462" font-size="10" font-weight="600" fill="#8B5E15">SDG 11</text>
+  <text x="74" y="474" font-size="9" fill="#8B5E15">Sustainable Cities — disaster-resilient communities</text>
+
+  <!-- SDG 13 -->
+  <rect x="400" y="452" width="200" height="26" rx="6" fill="#48773C" opacity="0.15"/>
+  <rect x="400" y="452" width="4" height="26" rx="2" fill="#48773C"/>
+  <text x="414" y="462" font-size="10" font-weight="600" fill="#27500A">SDG 13</text>
+  <text x="414" y="474" font-size="9" fill="#27500A">Climate Action — adaptive disaster response</text>
+
+  <!-- SDG 17 -->
+  <rect x="760" y="452" width="200" height="26" rx="6" fill="#1A3A6B" opacity="0.15"/>
+  <rect x="760" y="452" width="4" height="26" rx="2" fill="#1A3A6B"/>
+  <text x="774" y="462" font-size="10" font-weight="600" fill="#0C447C">SDG 17</text>
+  <text x="774" y="474" font-size="9" fill="#0C447C">Partnerships — NGOs + Govt + Citizens + AI</text>
+
+  <!-- ====================== CLOSING QUOTE ====================== -->
+  <rect x="30" y="500" width="940" height="60" rx="10" fill="#1A3A6B"/>
+  <text x="500" y="522" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">"483 people died in Kerala in 2018 — not from lack of boats, not from lack of food, from lack of coordination."</text>
+  <text x="500" y="542" text-anchor="middle" font-size="11" fill="#A8C4E8">RahatNet is the coordination layer India did not have in 2018.</text>
+  <text x="500" y="556" text-anchor="middle" font-size="11" font-weight="600" fill="#FFFFFF">It exists now.</text>
+</svg>

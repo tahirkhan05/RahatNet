@@ -1,0 +1,155 @@
+<svg viewBox="0 0 1000 660" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrd" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#69675F"/>
+    </marker>
+    <marker id="arrb" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#1A3A6B"/>
+    </marker>
+    <marker id="arrg" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#27500A"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1000" height="660" fill="#F7F6F3" rx="16"/>
+
+  <!-- Title -->
+  <text x="500" y="32" text-anchor="middle" font-size="18" font-weight="700" fill="#1E1D1A">RahatNet — System Architecture</text>
+  <text x="500" y="52" text-anchor="middle" font-size="12" fill="#69675F">Three-layer Google-native stack — Client · Backend + AI · Data + Integrations</text>
+
+  <!-- ========================= LAYER 1: CLIENT ========================= -->
+  <rect x="30" y="66" width="940" height="130" rx="12" fill="#FAECE7" stroke="#D4856A" stroke-width="1.5"/>
+  <text x="48" y="84" font-size="11" font-weight="700" fill="#7B1C1C">Layer 1 — Client</text>
+
+  <!-- Citizen App -->
+  <rect x="46" y="90" width="190" height="96" rx="8" fill="#FFFFFF" stroke="#D4856A" stroke-width="1"/>
+  <text x="141" y="108" text-anchor="middle" font-size="11" font-weight="600" fill="#7B1C1C">Citizen App</text>
+  <line x1="56" y1="113" x2="226" y2="113" stroke="#F5C0C0" stroke-width="0.8"/>
+  <text x="60" y="127" font-size="9" fill="#4A1A1A">Flutter · Android / iOS · PWA</text>
+  <text x="60" y="141" font-size="9" fill="#4A1A1A">Voice · Photo · GPS · Offline (2G)</text>
+  <text x="60" y="155" font-size="9" fill="#4A1A1A">30-second need reporting</text>
+  <text x="60" y="169" font-size="9" fill="#4A1A1A">Workbox offline queue</text>
+
+  <!-- Volunteer App -->
+  <rect x="256" y="90" width="190" height="96" rx="8" fill="#FFFFFF" stroke="#D4856A" stroke-width="1"/>
+  <text x="351" y="108" text-anchor="middle" font-size="11" font-weight="600" fill="#7B1C1C">Volunteer App</text>
+  <line x1="266" y1="113" x2="436" y2="113" stroke="#F5C0C0" stroke-width="0.8"/>
+  <text x="270" y="127" font-size="9" fill="#4A1A1A">Flutter · Maps nav · Real-time</text>
+  <text x="270" y="141" font-size="9" fill="#4A1A1A">Task · Accept · Track</text>
+  <text x="270" y="155" font-size="9" fill="#4A1A1A">FCM push notifications</text>
+  <text x="270" y="169" font-size="9" fill="#4A1A1A">Skill registration + matching</text>
+
+  <!-- War Room -->
+  <rect x="466" y="90" width="490" height="96" rx="8" fill="#FFFFFF" stroke="#D4856A" stroke-width="1"/>
+  <text x="711" y="108" text-anchor="middle" font-size="11" font-weight="600" fill="#7B1C1C">War Room Dashboard</text>
+  <line x1="476" y1="113" x2="946" y2="113" stroke="#F5C0C0" stroke-width="0.8"/>
+  <text x="480" y="127" font-size="9" fill="#4A1A1A">Next.js 14 · React · Tailwind · shadcn/ui</text>
+  <text x="480" y="141" font-size="9" fill="#4A1A1A">Live heatmap (Google Maps) · AI priority queue · Resource tracker</text>
+  <text x="480" y="155" font-size="9" fill="#4A1A1A">Coordinator assigns in one click · Impact metrics live · Auto-report export</text>
+  <text x="480" y="169" font-size="9" fill="#4A1A1A">Zustand state · TanStack Query · real-time Firestore listener</text>
+
+  <!-- Layer 1 → Layer 2 arrows -->
+  <text x="500" y="213" text-anchor="middle" font-size="9" fill="#69675F">HTTPS · Firebase SDK · FCM Push · Realtime DB subscription</text>
+  <line x1="141" y1="196" x2="141" y2="228" stroke="#69675F" stroke-width="1.2" stroke-dasharray="4,2" marker-end="url(#arrd)"/>
+  <line x1="351" y1="196" x2="351" y2="228" stroke="#69675F" stroke-width="1.2" stroke-dasharray="4,2" marker-end="url(#arrd)"/>
+  <line x1="711" y1="196" x2="711" y2="228" stroke="#69675F" stroke-width="1.2" stroke-dasharray="4,2" marker-end="url(#arrd)"/>
+
+  <!-- ========================= LAYER 2: BACKEND + AI ========================= -->
+  <rect x="30" y="228" width="940" height="160" rx="12" fill="#EBF5FF" stroke="#5B9BD5" stroke-width="1.5"/>
+  <text x="48" y="246" font-size="11" font-weight="700" fill="#0C447C">Layer 2 — Backend + AI</text>
+
+  <!-- Firebase Backend -->
+  <rect x="46" y="252" width="290" height="126" rx="8" fill="#FFFFFF" stroke="#5B9BD5" stroke-width="1"/>
+  <text x="191" y="270" text-anchor="middle" font-size="11" font-weight="600" fill="#0C447C">Firebase Backend</text>
+  <line x1="56" y1="275" x2="326" y2="275" stroke="#B3D4F5" stroke-width="0.8"/>
+  <text x="60" y="291" font-size="9" fill="#1A3A6B">Realtime DB — live needs feed, volunteer locations</text>
+  <text x="60" y="307" font-size="9" fill="#1A3A6B">Firestore — reports store, user profiles, needs, assignments</text>
+  <text x="60" y="323" font-size="9" fill="#1A3A6B">Firebase Auth — phone OTP, role-based custom claims</text>
+  <text x="60" y="339" font-size="9" fill="#1A3A6B">Cloud Functions — async AI pipeline, dispatch logic</text>
+  <text x="60" y="355" font-size="9" fill="#1A3A6B">Cloud Storage — photos, voice notes, field reports</text>
+  <text x="60" y="369" font-size="9" fill="#1A3A6B">Firebase Hosting — Next.js web app deployment</text>
+
+  <!-- AI Engine -->
+  <rect x="356" y="252" width="600" height="126" rx="8" fill="#FFFFFF" stroke="#5B9BD5" stroke-width="1"/>
+  <text x="656" y="270" text-anchor="middle" font-size="11" font-weight="600" fill="#0C447C">AI Engine</text>
+  <line x1="366" y1="275" x2="946" y2="275" stroke="#B3D4F5" stroke-width="0.8"/>
+  <!-- Gemini -->
+  <rect x="366" y="280" width="175" height="90" rx="6" fill="#EBF5FF" stroke="#B3D4F5" stroke-width="0.8"/>
+  <text x="453" y="296" text-anchor="middle" font-size="10" font-weight="600" fill="#0C447C">Gemini 1.5 Flash</text>
+  <text x="374" y="311" font-size="8" fill="#1A3A6B">NLP — de-duplication</text>
+  <text x="374" y="324" font-size="8" fill="#1A3A6B">Vision — photo severity</text>
+  <text x="374" y="337" font-size="8" fill="#1A3A6B">Multimodal — voice transcription</text>
+  <text x="374" y="350" font-size="8" fill="#1A3A6B">8-language cross-lingual NLP</text>
+  <text x="374" y="363" font-size="8" fill="#C0392B">200 reports → 1 canonical need</text>
+  <!-- Vertex AI -->
+  <rect x="551" y="280" width="155" height="90" rx="6" fill="#EBF5FF" stroke="#B3D4F5" stroke-width="0.8"/>
+  <text x="628" y="296" text-anchor="middle" font-size="10" font-weight="600" fill="#0C447C">Vertex AI</text>
+  <text x="559" y="311" font-size="8" fill="#1A3A6B">Urgency scoring 1–10</text>
+  <text x="559" y="324" font-size="8" fill="#1A3A6B">Multi-signal model:</text>
+  <text x="559" y="337" font-size="8" fill="#1A3A6B">keywords + photo + context</text>
+  <text x="559" y="350" font-size="8" fill="#1A3A6B">Phase 2: predictive pre-pos.</text>
+  <!-- Translate + Cloud Run -->
+  <rect x="716" y="280" width="222" height="90" rx="6" fill="#EBF5FF" stroke="#B3D4F5" stroke-width="0.8"/>
+  <text x="827" y="296" text-anchor="middle" font-size="10" font-weight="600" fill="#0C447C">Translate API + Cloud Run</text>
+  <text x="724" y="311" font-size="8" fill="#1A3A6B">Google Translate — 8 Indian languages</text>
+  <text x="724" y="324" font-size="8" fill="#1A3A6B">Cloud Run — AI model serving</text>
+  <text x="724" y="337" font-size="8" fill="#1A3A6B">Cloud Scheduler — IMD poll every 15m</text>
+  <text x="724" y="350" font-size="8" fill="#1A3A6B">Async pipeline — UI never blocks</text>
+
+  <!-- Layer 2 → Layer 3 arrows -->
+  <text x="500" y="405" text-anchor="middle" font-size="9" fill="#69675F">Results written back to Firestore · Maps API calls · BigQuery analytics</text>
+  <line x1="191" y1="388" x2="191" y2="418" stroke="#69675F" stroke-width="1.2" stroke-dasharray="4,2" marker-end="url(#arrd)"/>
+  <line x1="500" y1="388" x2="500" y2="418" stroke="#69675F" stroke-width="1.2" stroke-dasharray="4,2" marker-end="url(#arrd)"/>
+  <line x1="800" y1="388" x2="800" y2="418" stroke="#69675F" stroke-width="1.2" stroke-dasharray="4,2" marker-end="url(#arrd)"/>
+
+  <!-- ========================= LAYER 3: DATA + INTEGRATIONS ========================= -->
+  <rect x="30" y="418" width="940" height="120" rx="12" fill="#EAF3DE" stroke="#7BBD4F" stroke-width="1.5"/>
+  <text x="48" y="436" font-size="11" font-weight="700" fill="#27500A">Layer 3 — Data + Integrations</text>
+
+  <!-- Google Maps -->
+  <rect x="46" y="442" width="200" height="86" rx="8" fill="#FFFFFF" stroke="#7BBD4F" stroke-width="1"/>
+  <text x="146" y="460" text-anchor="middle" font-size="11" font-weight="600" fill="#27500A">Google Maps</text>
+  <line x1="56" y1="465" x2="236" y2="465" stroke="#C8DEC8" stroke-width="0.8"/>
+  <text x="58" y="479" font-size="9" fill="#173404">Maps JS — heatmap rendering</text>
+  <text x="58" y="493" font-size="9" fill="#173404">Routes API — volunteer dispatch</text>
+  <text x="58" y="507" font-size="9" fill="#173404">Distance Matrix — matching score</text>
+  <text x="58" y="521" font-size="9" fill="#173404">Places API — geocoding</text>
+
+  <!-- Trigger System -->
+  <rect x="264" y="442" width="200" height="86" rx="8" fill="#FFFFFF" stroke="#7BBD4F" stroke-width="1"/>
+  <text x="364" y="460" text-anchor="middle" font-size="11" font-weight="600" fill="#27500A">Trigger System</text>
+  <line x1="274" y1="465" x2="454" y2="465" stroke="#C8DEC8" stroke-width="0.8"/>
+  <text x="276" y="479" font-size="9" fill="#173404">IMD Weather API — red alerts</text>
+  <text x="276" y="493" font-size="9" fill="#173404">Google Alerts RSS — disaster news</text>
+  <text x="276" y="507" font-size="9" fill="#173404">FCM — volunteer broadcast</text>
+  <text x="276" y="521" font-size="9" fill="#C0392B">Activates 6h before flood peak</text>
+
+  <!-- Storage + Reports -->
+  <rect x="482" y="442" width="200" height="86" rx="8" fill="#FFFFFF" stroke="#7BBD4F" stroke-width="1"/>
+  <text x="582" y="460" text-anchor="middle" font-size="11" font-weight="600" fill="#27500A">Storage + Reports</text>
+  <line x1="492" y1="465" x2="672" y2="465" stroke="#C8DEC8" stroke-width="0.8"/>
+  <text x="494" y="479" font-size="9" fill="#173404">Cloud Storage — photos, voice</text>
+  <text x="494" y="493" font-size="9" fill="#173404">BigQuery — analytics, response</text>
+  <text x="494" y="507" font-size="9" fill="#173404">PDF report export (NDRF)</text>
+  <text x="494" y="521" font-size="9" fill="#173404">Google Analytics 4</text>
+
+  <!-- Auth + Privacy + Offline -->
+  <rect x="700" y="442" width="260" height="86" rx="8" fill="#FFFFFF" stroke="#7BBD4F" stroke-width="1"/>
+  <text x="830" y="460" text-anchor="middle" font-size="11" font-weight="600" fill="#27500A">Security + Resilience</text>
+  <line x1="710" y1="465" x2="950" y2="465" stroke="#C8DEC8" stroke-width="0.8"/>
+  <text x="712" y="479" font-size="9" fill="#173404">Firebase Auth — phone OTP, no passwords</text>
+  <text x="712" y="493" font-size="9" fill="#173404">Data privacy — anonymised before AI</text>
+  <text x="712" y="507" font-size="9" fill="#173404">Offline resilience — Workbox PWA, 2G</text>
+  <text x="712" y="521" font-size="9" fill="#173404">Firestore rules — role-based access</text>
+
+  <!-- ========================= OUTPUT BAR ========================= -->
+  <rect x="30" y="550" width="940" height="44" rx="10" fill="#1A3A6B"/>
+  <text x="500" y="568" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">Real-time war room output</text>
+  <text x="500" y="585" text-anchor="middle" font-size="10" fill="#A8C4E8">Live heatmap  ·  AI priority queue  ·  Volunteer positions  ·  Resource tracker  ·  Impact metrics  ·  Relief report export</text>
+
+  <!-- ========================= ALIGNMENT FOOTER ========================= -->
+  <rect x="30" y="602" width="940" height="34" rx="8" fill="#FAECE7" stroke="#D4856A" stroke-width="1"/>
+  <text x="500" y="614" text-anchor="middle" font-size="10" font-weight="600" fill="#7B1C1C">Problem statement alignment</text>
+  <text x="500" y="628" text-anchor="middle" font-size="9" fill="#4A1A1A">Scattered data aggregated in Firestore  ·  Biggest needs surfaced by Gemini urgency score  ·  Volunteers matched by skills-based dispatch  ·  All on Google Cloud</text>
+</svg>

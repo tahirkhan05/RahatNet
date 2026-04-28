@@ -1,0 +1,163 @@
+<svg viewBox="0 0 1000 720" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif">
+  <!-- Background -->
+  <rect width="1000" height="720" fill="#F7F6F3" rx="16"/>
+
+  <!-- Title -->
+  <text x="500" y="36" text-anchor="middle" font-size="18" font-weight="700" fill="#1E1D1A">RahatNet — End-to-End Process Flow</text>
+  <text x="500" y="56" text-anchor="middle" font-size="12" fill="#69675F">From IMD alert to resolved need — three actors, one coordinated system</text>
+
+  <!-- Swim lane headers -->
+  <!-- Lane 1: System/Trigger -->
+  <rect x="20" y="72" width="200" height="36" rx="8" fill="#7B1C1C"/>
+  <text x="120" y="96" text-anchor="middle" font-size="12" font-weight="600" fill="#FFFFFF">System / Trigger</text>
+
+  <!-- Lane 2: Citizen -->
+  <rect x="240" y="72" width="200" height="36" rx="8" fill="#854F0B"/>
+  <text x="340" y="96" text-anchor="middle" font-size="12" font-weight="600" fill="#FFFFFF">Citizen</text>
+
+  <!-- Lane 3: AI Engine -->
+  <rect x="460" y="72" width="200" height="36" rx="8" fill="#1A3A6B"/>
+  <text x="560" y="96" text-anchor="middle" font-size="12" font-weight="600" fill="#FFFFFF">AI Engine</text>
+
+  <!-- Lane 4: Coordinator -->
+  <rect x="680" y="72" width="140" height="36" rx="8" fill="#27500A"/>
+  <text x="750" y="96" text-anchor="middle" font-size="12" font-weight="600" fill="#FFFFFF">Coordinator</text>
+
+  <!-- Lane 5: Volunteer -->
+  <rect x="840" y="72" width="140" height="36" rx="8" fill="#3C3489"/>
+  <text x="910" y="96" text-anchor="middle" font-size="12" font-weight="600" fill="#FFFFFF">Volunteer</text>
+
+  <!-- Lane dividers (vertical dashed lines) -->
+  <line x1="230" y1="108" x2="230" y2="700" stroke="#E2E0D9" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="450" y1="108" x2="450" y2="700" stroke="#E2E0D9" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="670" y1="108" x2="670" y2="700" stroke="#E2E0D9" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="830" y1="108" x2="830" y2="700" stroke="#E2E0D9" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- ===== ROW 1: IMD Alert ===== -->
+  <!-- System box -->
+  <rect x="30" y="118" width="180" height="46" rx="8" fill="#FAECE7" stroke="#D4856A" stroke-width="1.5"/>
+  <text x="120" y="137" text-anchor="middle" font-size="11" font-weight="600" fill="#7B1C1C">IMD Red Alert</text>
+  <text x="120" y="153" text-anchor="middle" font-size="10" fill="#4A1A1A">IMD RSS polled every 15 min</text>
+  <!-- arrow right -->
+  <line x1="210" y1="141" x2="238" y2="141" stroke="#7B1C1C" stroke-width="1.5" marker-end="url(#arr-red)"/>
+
+  <!-- Citizen box (receives notification) -->
+  <rect x="250" y="118" width="180" height="46" rx="8" fill="#FAEEDA" stroke="#D4A06A" stroke-width="1.5"/>
+  <text x="340" y="137" text-anchor="middle" font-size="11" font-weight="600" fill="#854F0B">Volunteer notified</text>
+  <text x="340" y="153" text-anchor="middle" font-size="10" fill="#412402">FCM push: "Your area needs you"</text>
+
+  <!-- ===== ROW 2: Citizen Reports ===== -->
+  <rect x="250" y="184" width="180" height="56" rx="8" fill="#FAEEDA" stroke="#D4A06A" stroke-width="1.5"/>
+  <text x="340" y="203" text-anchor="middle" font-size="11" font-weight="600" fill="#854F0B">Citizen Opens App</text>
+  <text x="340" y="219" text-anchor="middle" font-size="10" fill="#412402">Selects need type</text>
+  <text x="340" y="233" text-anchor="middle" font-size="10" fill="#412402">Voice / photo / GPS — Submit</text>
+
+  <!-- down arrow citizen -->
+  <line x1="340" y1="240" x2="340" y2="258" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr-amber)"/>
+
+  <rect x="250" y="258" width="180" height="46" rx="8" fill="#FAEEDA" stroke="#D4A06A" stroke-width="1.5"/>
+  <text x="340" y="277" text-anchor="middle" font-size="11" font-weight="600" fill="#854F0B">Raw Report Created</text>
+  <text x="340" y="293" text-anchor="middle" font-size="10" fill="#412402">Stored in Firestore — status: PENDING</text>
+
+  <!-- arrow right to AI -->
+  <line x1="430" y1="281" x2="458" y2="281" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr-amber)"/>
+
+  <!-- ===== ROW AI: De-duplication ===== -->
+  <rect x="470" y="184" width="180" height="130" rx="8" fill="#EBF5FF" stroke="#5B9BD5" stroke-width="1.5"/>
+  <text x="560" y="205" text-anchor="middle" font-size="11" font-weight="600" fill="#0C447C">AI Engine Triggers</text>
+  <line x1="480" y1="212" x2="640" y2="212" stroke="#B3D4F5" stroke-width="1"/>
+  <text x="560" y="228" text-anchor="middle" font-size="10" fill="#1A3A6B">1. GPS clustering (DBSCAN 200m)</text>
+  <text x="560" y="244" text-anchor="middle" font-size="10" fill="#1A3A6B">2. Gemini NLP deduplication</text>
+  <text x="560" y="260" text-anchor="middle" font-size="10" fill="#1A3A6B">3. Urgency scoring 1–10</text>
+  <text x="560" y="276" text-anchor="middle" font-size="10" fill="#1A3A6B">4. Need classification</text>
+  <text x="560" y="292" text-anchor="middle" font-size="10" font-weight="600" fill="#C0392B">200 reports → 5 canonical needs</text>
+  <text x="560" y="308" text-anchor="middle" font-size="10" fill="#1A3A6B">Published to Realtime DB</text>
+
+  <!-- arrow right to coordinator -->
+  <line x1="650" y1="249" x2="678" y2="249" stroke="#1A3A6B" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+
+  <!-- ===== COORDINATOR ROW ===== -->
+  <rect x="688" y="184" width="128" height="56" rx="8" fill="#EAF3DE" stroke="#7BBD4F" stroke-width="1.5"/>
+  <text x="752" y="205" text-anchor="middle" font-size="11" font-weight="600" fill="#27500A">War Room Live</text>
+  <text x="752" y="221" text-anchor="middle" font-size="10" fill="#173404">Heatmap updates</text>
+  <text x="752" y="237" text-anchor="middle" font-size="10" fill="#173404">Priority queue fills</text>
+
+  <!-- down arrow coordinator -->
+  <line x1="752" y1="240" x2="752" y2="258" stroke="#27500A" stroke-width="1.5" marker-end="url(#arr-green)"/>
+
+  <rect x="688" y="258" width="128" height="56" rx="8" fill="#EAF3DE" stroke="#7BBD4F" stroke-width="1.5"/>
+  <text x="752" y="279" text-anchor="middle" font-size="11" font-weight="600" fill="#27500A">Coordinator Assigns</text>
+  <text x="752" y="295" text-anchor="middle" font-size="10" fill="#173404">One click dispatch</text>
+  <text x="752" y="311" text-anchor="middle" font-size="10" fill="#173404">Best volunteer selected</text>
+
+  <!-- arrow right to volunteer -->
+  <line x1="816" y1="285" x2="838" y2="285" stroke="#27500A" stroke-width="1.5" marker-end="url(#arr-green)"/>
+
+  <!-- ===== VOLUNTEER ROW ===== -->
+  <rect x="848" y="258" width="128" height="56" rx="8" fill="#EEEDFE" stroke="#9B8FE8" stroke-width="1.5"/>
+  <text x="912" y="279" text-anchor="middle" font-size="11" font-weight="600" fill="#3C3489">Task Received</text>
+  <text x="912" y="295" text-anchor="middle" font-size="10" fill="#26215C">FCM push notification</text>
+  <text x="912" y="311" text-anchor="middle" font-size="10" fill="#26215C">Accept in 60 seconds</text>
+
+  <!-- down arrow volunteer -->
+  <line x1="912" y1="314" x2="912" y2="332" stroke="#3C3489" stroke-width="1.5" marker-end="url(#arr-purple)"/>
+
+  <rect x="848" y="332" width="128" height="56" rx="8" fill="#EEEDFE" stroke="#9B8FE8" stroke-width="1.5"/>
+  <text x="912" y="353" text-anchor="middle" font-size="11" font-weight="600" fill="#3C3489">Navigate + Complete</text>
+  <text x="912" y="369" text-anchor="middle" font-size="10" fill="#26215C">Google Maps turn-by-turn</text>
+  <text x="912" y="385" text-anchor="middle" font-size="10" fill="#26215C">Mark complete on arrival</text>
+
+  <!-- back-arrow to citizen (notification) -->
+  <path d="M848 360 Q600 440 430 420 Q300 410 340 404" stroke="#27500A" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-green)"/>
+
+  <!-- Citizen receives resolution -->
+  <rect x="250" y="398" width="180" height="46" rx="8" fill="#EAF3DE" stroke="#7BBD4F" stroke-width="1.5"/>
+  <text x="340" y="417" text-anchor="middle" font-size="11" font-weight="600" fill="#27500A">Reporter Notified</text>
+  <text x="340" y="433" text-anchor="middle" font-size="10" fill="#173404">"Help has arrived" push sent</text>
+
+  <!-- down final impact -->
+  <line x1="340" y1="444" x2="340" y2="462" stroke="#27500A" stroke-width="1.5" marker-end="url(#arr-green)"/>
+  <line x1="752" y1="388" x2="752" y2="462" stroke="#27500A" stroke-width="1.5" marker-end="url(#arr-green)"/>
+  <line x1="912" y1="388" x2="912" y2="462" stroke="#3C3489" stroke-width="1.5" marker-end="url(#arr-purple)"/>
+
+  <!-- Final impact row -->
+  <rect x="60" y="462" width="860" height="52" rx="10" fill="#1A3A6B"/>
+  <text x="490" y="483" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">Measurable Impact</text>
+  <text x="490" y="500" text-anchor="middle" font-size="11" fill="#A8C4E8">Need resolved  ·  Avg response &lt;8 min  ·  Zero duplicate dispatch  ·  Impact metrics logged to BigQuery</text>
+
+  <!-- Timer badge -->
+  <rect x="380" y="526" width="220" height="32" rx="16" fill="#C0392B"/>
+  <text x="490" y="547" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">Target: Need reported → dispatched in &lt; 8 minutes</text>
+
+  <!-- Offline badge -->
+  <rect x="30" y="526" width="175" height="32" rx="8" fill="#FAEEDA" stroke="#D4A06A" stroke-width="1"/>
+  <text x="117" y="540" text-anchor="middle" font-size="10" font-weight="600" fill="#854F0B">Offline mode</text>
+  <text x="117" y="552" text-anchor="middle" font-size="10" fill="#412402">Reports queued on 2G, auto-synced</text>
+
+  <!-- Proactive badge -->
+  <rect x="720" y="526" width="200" height="32" rx="8" fill="#EAF3DE" stroke="#7BBD4F" stroke-width="1"/>
+  <text x="820" y="540" text-anchor="middle" font-size="10" font-weight="600" fill="#27500A">Proactive trigger</text>
+  <text x="820" y="552" text-anchor="middle" font-size="10" fill="#173404">Platform live before first flood report</text>
+
+  <!-- vertical connector citizen row 1 to row 2 -->
+  <line x1="340" y1="164" x2="340" y2="184" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr-amber)"/>
+
+  <!-- Arrowhead defs -->
+  <defs>
+    <marker id="arr-red" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#7B1C1C"/>
+    </marker>
+    <marker id="arr-amber" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#854F0B"/>
+    </marker>
+    <marker id="arr-blue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#1A3A6B"/>
+    </marker>
+    <marker id="arr-green" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#27500A"/>
+    </marker>
+    <marker id="arr-purple" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#3C3489"/>
+    </marker>
+  </defs>
+</svg>

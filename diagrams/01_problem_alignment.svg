@@ -1,0 +1,91 @@
+<svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif">
+  <!-- Background -->
+  <rect width="900" height="560" fill="#F7F6F3" rx="16"/>
+
+  <!-- Title -->
+  <text x="450" y="38" text-anchor="middle" font-size="18" font-weight="700" fill="#1E1D1A">Problem Statement → RahatNet Solution Alignment</text>
+  <text x="450" y="58" text-anchor="middle" font-size="12" fill="#69675F">Every word of the problem statement maps to a feature</text>
+
+  <!-- Divider line -->
+  <line x1="60" y1="72" x2="840" y2="72" stroke="#E2E0D9" stroke-width="1"/>
+
+  <!-- Column headers -->
+  <rect x="60" y="84" width="360" height="32" rx="8" fill="#7B1C1C"/>
+  <text x="240" y="105" text-anchor="middle" font-size="13" font-weight="600" fill="#FFFFFF">Problem Statement (verbatim)</text>
+
+  <rect x="480" y="84" width="360" height="32" rx="8" fill="#1A3A6B"/>
+  <text x="660" y="105" text-anchor="middle" font-size="13" font-weight="600" fill="#FFFFFF">RahatNet Feature That Solves It</text>
+
+  <!-- Center arrow column -->
+  <text x="450" y="105" text-anchor="middle" font-size="16" fill="#9C9A92">→</text>
+
+  <!-- Row 1 -->
+  <rect x="60" y="128" width="360" height="58" rx="8" fill="#FFF5F5" stroke="#F5C0C0" stroke-width="1"/>
+  <text x="80" y="149" font-size="11" font-weight="600" fill="#7B1C1C">Scattered data</text>
+  <text x="80" y="165" font-size="11" fill="#4A1A1A">"data is often scattered across</text>
+  <text x="80" y="179" font-size="11" fill="#4A1A1A">different places"</text>
+
+  <text x="450" y="162" text-anchor="middle" font-size="18" fill="#C0392B">→</text>
+
+  <rect x="480" y="128" width="360" height="58" rx="8" fill="#EBF5FF" stroke="#B3D4F5" stroke-width="1"/>
+  <text x="500" y="149" font-size="11" font-weight="600" fill="#0C447C">Multi-source aggregation</text>
+  <text x="500" y="165" font-size="11" fill="#1A3A6B">Citizens, NGOs, Army/NDRF all feed</text>
+  <text x="500" y="179" font-size="11" fill="#1A3A6B">into one unified Firestore pipeline</text>
+
+  <!-- Row 2 -->
+  <rect x="60" y="198" width="360" height="58" rx="8" fill="#FFF5F5" stroke="#F5C0C0" stroke-width="1"/>
+  <text x="80" y="219" font-size="11" font-weight="600" fill="#7B1C1C">Hard to see biggest problems</text>
+  <text x="80" y="235" font-size="11" fill="#4A1A1A">"making it hard to see the biggest</text>
+  <text x="80" y="249" font-size="11" fill="#4A1A1A">problems clearly"</text>
+
+  <text x="450" y="232" text-anchor="middle" font-size="18" fill="#C0392B">→</text>
+
+  <rect x="480" y="198" width="360" height="58" rx="8" fill="#EBF5FF" stroke="#B3D4F5" stroke-width="1"/>
+  <text x="500" y="219" font-size="11" font-weight="600" fill="#0C447C">AI urgency scoring + live heatmap</text>
+  <text x="500" y="235" font-size="11" fill="#1A3A6B">Gemini scores every need 1–10. War</text>
+  <text x="500" y="249" font-size="11" fill="#1A3A6B">room shows red/amber/green heatmap</text>
+
+  <!-- Row 3 -->
+  <rect x="60" y="268" width="360" height="58" rx="8" fill="#FFF5F5" stroke="#F5C0C0" stroke-width="1"/>
+  <text x="80" y="289" font-size="11" font-weight="600" fill="#7B1C1C">Paper surveys and field reports</text>
+  <text x="80" y="305" font-size="11" fill="#4A1A1A">"collect info through paper surveys</text>
+  <text x="80" y="319" font-size="11" fill="#4A1A1A">and field reports"</text>
+
+  <text x="450" y="302" text-anchor="middle" font-size="18" fill="#C0392B">→</text>
+
+  <rect x="480" y="268" width="360" height="58" rx="8" fill="#EBF5FF" stroke="#B3D4F5" stroke-width="1"/>
+  <text x="500" y="289" font-size="11" font-weight="600" fill="#0C447C">Digital + NGO survey intake</text>
+  <text x="500" y="305" font-size="11" fill="#1A3A6B">Citizen app replaces paper. NGO</text>
+  <text x="500" y="319" font-size="11" fill="#1A3A6B">survey form built in (SurveyReportForm)</text>
+
+  <!-- Row 4 -->
+  <rect x="60" y="338" width="360" height="58" rx="8" fill="#FFF5F5" stroke="#F5C0C0" stroke-width="1"/>
+  <text x="80" y="359" font-size="11" font-weight="600" fill="#7B1C1C">Most urgent local needs</text>
+  <text x="80" y="375" font-size="11" fill="#4A1A1A">"clearly show the most urgent</text>
+  <text x="80" y="389" font-size="11" fill="#4A1A1A">local needs"</text>
+
+  <text x="450" y="372" text-anchor="middle" font-size="18" fill="#C0392B">→</text>
+
+  <rect x="480" y="338" width="360" height="58" rx="8" fill="#EBF5FF" stroke="#B3D4F5" stroke-width="1"/>
+  <text x="500" y="359" font-size="11" font-weight="600" fill="#0C447C">AI-ranked priority queue</text>
+  <text x="500" y="375" font-size="11" fill="#1A3A6B">War room shows CRITICAL needs at</text>
+  <text x="500" y="389" font-size="11" fill="#1A3A6B">top. Coordinator assigns in one click</text>
+
+  <!-- Row 5 -->
+  <rect x="60" y="408" width="360" height="58" rx="8" fill="#FFF5F5" stroke="#F5C0C0" stroke-width="1"/>
+  <text x="80" y="429" font-size="11" font-weight="600" fill="#7B1C1C">Match volunteers to tasks</text>
+  <text x="80" y="445" font-size="11" fill="#4A1A1A">"quickly match and connect available</text>
+  <text x="80" y="459" font-size="11" fill="#4A1A1A">volunteers with specific tasks"</text>
+
+  <text x="450" y="442" text-anchor="middle" font-size="18" fill="#C0392B">→</text>
+
+  <rect x="480" y="408" width="360" height="58" rx="8" fill="#EBF5FF" stroke="#B3D4F5" stroke-width="1"/>
+  <text x="500" y="429" font-size="11" font-weight="600" fill="#0C447C">Skills-based dispatch algorithm</text>
+  <text x="500" y="445" font-size="11" fill="#1A3A6B">Distance + skill + language weighted</text>
+  <text x="500" y="459" font-size="11" fill="#1A3A6B">match. FCM push in under 8 minutes</text>
+
+  <!-- Bottom summary bar -->
+  <rect x="60" y="484" width="780" height="56" rx="10" fill="#1A3A6B"/>
+  <text x="450" y="508" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">100% alignment: every requirement in the problem statement maps to a shipped feature</text>
+  <text x="450" y="528" text-anchor="middle" font-size="11" fill="#A8C4E8">Scattered data → aggregated  ·  Unclear priorities → AI-ranked  ·  Paper surveys → digital  ·  Volunteer matching → automated dispatch</text>
+</svg>
