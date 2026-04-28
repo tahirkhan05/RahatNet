@@ -551,7 +551,9 @@ export async function POST(
   }
   const need = needSnap.data() as CanonicalNeed;
 
-  if (need.status !== NeedStatus.VERIFIED && need.status !== NeedStatus.PENDING) {
+  // Allow re-dispatching ASSIGNED needs (coordinator manually reassigning)
+  const dispatchableStatuses = [NeedStatus.VERIFIED, NeedStatus.PENDING, NeedStatus.ASSIGNED];
+  if (!dispatchableStatuses.includes(need.status)) {
     return NextResponse.json(
       {
         success: false, data: null,

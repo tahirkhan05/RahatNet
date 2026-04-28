@@ -162,7 +162,7 @@ export function AssignVolunteerModal({
   const [error,        setError]        = React.useState<string | null>(null);
   const [selectedUid,  setSelectedUid]  = React.useState<string | null>(null);
   const [message,      setMessage]      = React.useState(
-    `Please proceed to ${need.locationName}`,
+    `Please proceed to ${need.locationName ?? (need.location as unknown as { address?: string })?.address ?? 'the reported location'}`,
   );
   const [skillFilter,  setSkillFilter]  = React.useState(true);
 
@@ -185,14 +185,33 @@ export function AssignVolunteerModal({
     setLoading(true);
     void (async () => {
       try {
+        // First try AI-matched volunteers (requires GPS in RTDB)
         const res = await fetch(
           `/api/dispatch/matches/${need.id}?lat=${need.location.lat}&lng=${need.location.lng}`,
         );
-        if (!res.ok) throw new Error('Failed to fetch volunteers');
-        const data = (await res.json()) as { data: VolunteerMatch[] };
-        setVolunteers(data.data ?? []);
-      } catch (err) {
-        // Fallback: show placeholder data so the UI is still usable.
+        if (res.ok) {
+          const data = (await res.json()) as { data: VolunteerMatch[] };
+          const matched = data.data ?? [];
+          if (matched.length > 0) { setVolunteers(matched); setLoading(false); return; }
+        }
+        // Fallback: query all available volunteers from Firestore directly
+        const fallbackRes = await fetch('/api/volunteers?available=true&limit=20');
+        if (fallbackRes.ok) {
+          const fallbackData = (await fallbackRes.json()) as { data?: { items?: unknown[] } };
+          const items = fallbackData.data?.items ?? [];
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const mapped: VolunteerMatch[] = (items as any[]).map((v: any) => ({
+            uid:          v.uid ?? v.id,
+            displayName:  v.displayName ?? 'Volunteer',
+            skills:       v.skills ?? [],
+            distanceKm:   0,
+            lastActiveMs: Date.now(),
+            rating:       null,
+            isAvailable:  true,
+          }));
+          setVolunteers(mapped);
+        }
+      } catch {
         setVolunteers([]);
         setError('Could not load volunteers. Check your connection.');
       } finally {
