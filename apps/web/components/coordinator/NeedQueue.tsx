@@ -24,10 +24,7 @@
 import * as React from 'react';
 import { FixedSizeList, type ListChildComponentProps } from 'react-window';
 import { Search, Filter, X } from 'lucide-react';
-import {
-  NeedType, NeedStatus, NeedSeverity,
-  type CanonicalNeed,
-} from '@rahatnet/types';
+import { NeedType, NeedStatus, NeedSeverity, type CanonicalNeed } from '@rahatnet/types';
 import { NeedQueueItem } from './NeedQueueItem';
 
 // ---------------------------------------------------------------------------
@@ -37,12 +34,12 @@ import { NeedQueueItem } from './NeedQueueItem';
 type FilterTab = 'all' | NeedSeverity | 'resolved';
 
 interface NeedQueueProps {
-  needs:        readonly CanonicalNeed[];
-  isLoading:    boolean;
+  needs: readonly CanonicalNeed[];
+  isLoading: boolean;
   selectedNeed: CanonicalNeed | null;
-  onSelect:     (need: CanonicalNeed) => void;
-  onAssign:     (need: CanonicalNeed) => void;
-  onDuplicate:  (need: CanonicalNeed) => void;
+  onSelect: (need: CanonicalNeed) => void;
+  onAssign: (need: CanonicalNeed) => void;
+  onDuplicate: (need: CanonicalNeed) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -51,9 +48,9 @@ interface NeedQueueProps {
 
 const SEVERITY_ORDER: Record<NeedSeverity, number> = {
   [NeedSeverity.CRITICAL]: 0,
-  [NeedSeverity.URGENT]:   1,
-  [NeedSeverity.NORMAL]:   2,
-  [NeedSeverity.LOW]:      3,
+  [NeedSeverity.URGENT]: 1,
+  [NeedSeverity.NORMAL]: 2,
+  [NeedSeverity.LOW]: 3,
 };
 
 function sortNeeds(needs: readonly CanonicalNeed[]): CanonicalNeed[] {
@@ -72,8 +69,8 @@ function sortNeeds(needs: readonly CanonicalNeed[]): CanonicalNeed[] {
 
 function filterNeeds(
   needs: readonly CanonicalNeed[],
-  tab:   FilterTab,
-  type:  NeedType | 'all',
+  tab: FilterTab,
+  type: NeedType | 'all',
   query: string,
 ): CanonicalNeed[] {
   let result = [...needs];
@@ -82,9 +79,7 @@ function filterNeeds(
   if (tab === 'resolved') {
     result = result.filter((n) => n.status === NeedStatus.RESOLVED);
   } else if (tab !== 'all') {
-    result = result.filter(
-      (n) => n.severity === tab && n.status !== NeedStatus.RESOLVED,
-    );
+    result = result.filter((n) => n.severity === tab && n.status !== NeedStatus.RESOLVED);
   } else {
     result = result.filter((n) => n.status !== NeedStatus.RESOLVED);
   }
@@ -98,9 +93,7 @@ function filterNeeds(
   if (query.trim().length > 0) {
     const q = query.trim().toLowerCase();
     result = result.filter(
-      (n) =>
-        n.locationName.toLowerCase().includes(q) ||
-        n.title.toLowerCase().includes(q),
+      (n) => n.locationName.toLowerCase().includes(q) || n.title.toLowerCase().includes(q),
     );
   }
 
@@ -112,11 +105,11 @@ function filterNeeds(
 // ---------------------------------------------------------------------------
 
 interface VirtualRowData {
-  items:       CanonicalNeed[];
-  selectedId:  string | null;
-  newIds:      Set<string>;
-  onSelect:    (n: CanonicalNeed) => void;
-  onAssign:    (n: CanonicalNeed) => void;
+  items: CanonicalNeed[];
+  selectedId: string | null;
+  newIds: Set<string>;
+  onSelect: (n: CanonicalNeed) => void;
+  onAssign: (n: CanonicalNeed) => void;
   onDuplicate: (n: CanonicalNeed) => void;
 }
 
@@ -145,30 +138,35 @@ function VirtualRow({ index, style, data }: ListChildComponentProps<VirtualRowDa
 // ---------------------------------------------------------------------------
 
 const VIRTUAL_THRESHOLD = 100;
-const ITEM_HEIGHT       = 120; // px per row in virtual list
+const ITEM_HEIGHT = 160; // px per row in virtual list
 
 const FILTER_TABS: Array<{ id: FilterTab; label: string }> = [
-  { id: 'all',                    label: 'All'      },
-  { id: NeedSeverity.CRITICAL,    label: 'Critical' },
-  { id: NeedSeverity.URGENT,      label: 'Urgent'   },
-  { id: NeedSeverity.NORMAL,      label: 'Normal'   },
-  { id: 'resolved',               label: 'Resolved' },
+  { id: 'all', label: 'All' },
+  { id: NeedSeverity.CRITICAL, label: 'Critical' },
+  { id: NeedSeverity.URGENT, label: 'Urgent' },
+  { id: NeedSeverity.NORMAL, label: 'Normal' },
+  { id: 'resolved', label: 'Resolved' },
 ];
 
 export function NeedQueue({
-  needs, isLoading, selectedNeed, onSelect, onAssign, onDuplicate,
+  needs,
+  isLoading,
+  selectedNeed,
+  onSelect,
+  onAssign,
+  onDuplicate,
 }: NeedQueueProps) {
-  const [activeTab,   setActiveTab]   = React.useState<FilterTab>('all');
-  const [typeFilter,  setTypeFilter]  = React.useState<NeedType | 'all'>('all');
+  const [activeTab, setActiveTab] = React.useState<FilterTab>('all');
+  const [typeFilter, setTypeFilter] = React.useState<NeedType | 'all'>('all');
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [newIds,      setNewIds]      = React.useState<Set<string>>(new Set());
+  const [newIds, setNewIds] = React.useState<Set<string>>(new Set());
   const prevIdsRef = React.useRef<Set<string>>(new Set());
-  const listRef    = React.useRef<FixedSizeList>(null);
+  const listRef = React.useRef<FixedSizeList>(null);
 
   // Track newly arrived needs for slide-in animation.
   React.useEffect(() => {
     const currentIds = new Set(needs.map((n) => n.id));
-    const incoming   = [...currentIds].filter((id) => !prevIdsRef.current.has(id));
+    const incoming = [...currentIds].filter((id) => !prevIdsRef.current.has(id));
 
     if (incoming.length > 0) {
       setNewIds((prev) => new Set([...prev, ...incoming]));
@@ -189,28 +187,28 @@ export function NeedQueue({
 
   // Memoize the sorted + filtered list to avoid re-sorting on every render.
   const displayNeeds = React.useMemo(() => {
-    const sorted   = sortNeeds(needs);
+    const sorted = sortNeeds(needs);
     return filterNeeds(sorted, activeTab, typeFilter, searchQuery);
   }, [needs, activeTab, typeFilter, searchQuery]);
 
-  const totalCount    = needs.filter((n) => n.status !== NeedStatus.RESOLVED).length;
-  const criticalCount = needs.filter((n) => n.severity === NeedSeverity.CRITICAL && n.status !== NeedStatus.RESOLVED).length;
+  const totalCount = needs.filter((n) => n.status !== NeedStatus.RESOLVED).length;
+  const criticalCount = needs.filter(
+    (n) => n.severity === NeedSeverity.CRITICAL && n.status !== NeedStatus.RESOLVED,
+  ).length;
 
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="border-b border-border px-3 py-2.5">
+      <div className="border-border border-b px-3 py-2.5">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-foreground">
-            Priority Queue
-          </h2>
+          <h2 className="text-foreground text-sm font-semibold">Priority Queue</h2>
           <div className="flex items-center gap-2">
             {criticalCount > 0 && (
               <span className="rounded-full bg-red-100 px-1.5 py-0.5 text-[11px] font-bold text-red-700 dark:bg-red-900 dark:text-red-200">
                 {criticalCount} critical
               </span>
             )}
-            <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[11px] text-muted-foreground">
+            <span className="bg-secondary text-muted-foreground rounded-full px-1.5 py-0.5 text-[11px]">
               {totalCount}
             </span>
           </div>
@@ -218,21 +216,24 @@ export function NeedQueue({
 
         {/* Search */}
         <div className="relative mt-2">
-          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          <Search
+            className="text-muted-foreground absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2"
+            aria-hidden="true"
+          />
           <input
             type="search"
             placeholder="Search by location…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             aria-label="Search needs by location"
-            className="w-full rounded-lg border border-border bg-background py-1.5 pl-8 pr-8 text-xs text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="border-border bg-background text-foreground placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-lg border py-1.5 pl-8 pr-8 text-xs focus-visible:outline-none focus-visible:ring-1"
           />
           {searchQuery.length > 0 && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
               aria-label="Clear search"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground absolute right-2 top-1/2 -translate-y-1/2"
             >
               <X className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
@@ -249,7 +250,7 @@ export function NeedQueue({
               onClick={() => setActiveTab(id)}
               className={[
                 'rounded-md px-2 py-1 text-[11px] font-medium transition-colors',
-                'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+                'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-1',
                 activeTab === id
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:bg-accent hover:text-foreground',
@@ -264,14 +265,19 @@ export function NeedQueue({
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value as NeedType | 'all')}
               aria-label="Filter by need type"
-              className="appearance-none rounded-md border border-border bg-background py-1 pl-2 pr-6 text-[11px] text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="border-border bg-background text-foreground focus-visible:ring-ring appearance-none rounded-md border py-1 pl-2 pr-6 text-[11px] focus-visible:outline-none focus-visible:ring-1"
             >
               <option value="all">All types</option>
               {Object.values(NeedType).map((t) => (
-                <option key={t} value={t}>{t}</option>
+                <option key={t} value={t}>
+                  {t}
+                </option>
               ))}
             </select>
-            <Filter className="pointer-events-none absolute right-1.5 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+            <Filter
+              className="text-muted-foreground pointer-events-none absolute right-1.5 top-1/2 h-3 w-3 -translate-y-1/2"
+              aria-hidden="true"
+            />
           </div>
         </div>
       </div>
@@ -281,11 +287,11 @@ export function NeedQueue({
         {isLoading ? (
           <div className="space-y-2 p-2">
             {Array.from({ length: 5 }, (_, i) => (
-              <div key={i} className="h-24 rounded-lg skeleton-shimmer" />
+              <div key={i} className="skeleton-shimmer h-24 rounded-lg" />
             ))}
           </div>
         ) : displayNeeds.length === 0 ? (
-          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+          <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
             {searchQuery ? 'No needs match your search.' : 'No needs in this category.'}
           </div>
         ) : displayNeeds.length > VIRTUAL_THRESHOLD ? (
@@ -298,8 +304,8 @@ export function NeedQueue({
             width="100%"
             className="rn-scroll-panel"
             itemData={{
-              items:       displayNeeds,
-              selectedId:  selectedNeed?.id ?? null,
+              items: displayNeeds,
+              selectedId: selectedNeed?.id ?? null,
               newIds,
               onSelect,
               onAssign,
@@ -313,10 +319,7 @@ export function NeedQueue({
           /* Normal scroll for small datasets */
           <div className="rn-scroll-panel h-full space-y-1.5 p-2">
             {displayNeeds.map((need) => (
-              <div
-                key={need.id}
-                className={newIds.has(need.id) ? 'animate-slide-in' : ''}
-              >
+              <div key={need.id} className={newIds.has(need.id) ? 'animate-slide-in' : ''}>
                 <NeedQueueItem
                   need={need}
                   isSelected={selectedNeed?.id === need.id}

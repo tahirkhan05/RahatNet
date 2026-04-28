@@ -3,6 +3,9 @@
  *
  * Server-component shell; all interactivity lives in ReportPageClient.
  * Middleware redirects unauthenticated users to /login before this renders.
+ *
+ * ?mode=survey  → renders the NGO community survey form
+ * (default)     → renders the real-time crisis report form
  */
 
 import type { Metadata } from 'next';
@@ -13,6 +16,11 @@ export const metadata: Metadata = {
   description: 'Tell us what help is needed. Report food, rescue, medicine, or shelter needs.',
 };
 
-export default function ReportPage() {
-  return <ReportPageClient />;
+interface Props {
+  searchParams: Record<string, string | string[] | undefined>;
+}
+
+export default function ReportPage({ searchParams }: Props) {
+  const mode = searchParams['mode'] === 'survey' ? 'survey' : 'crisis';
+  return <ReportPageClient mode={mode} />;
 }

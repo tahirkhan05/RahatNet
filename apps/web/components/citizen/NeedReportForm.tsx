@@ -37,6 +37,9 @@ import {
   CheckCircle2,
   Minus,
   Plus,
+  Mic,
+  Camera,
+  AlertTriangle,
 } from 'lucide-react';
 import { NeedType } from '@rahatnet/types';
 import { t } from '@/lib/i18n/t';
@@ -81,12 +84,36 @@ const NEED_TYPES: Array<{
   icon: React.ReactNode;
   color: string;
 }> = [
-  { type: NeedType.RESCUE,        icon: <Anchor className="h-7 w-7" />,        color: 'text-red-600 bg-red-50 dark:bg-red-950' },
-  { type: NeedType.FOOD,          icon: <UtensilsCrossed className="h-7 w-7" />, color: 'text-amber-600 bg-amber-50 dark:bg-amber-950' },
-  { type: NeedType.MEDICINE,      icon: <Cross className="h-7 w-7" />,          color: 'text-blue-600 bg-blue-50 dark:bg-blue-950' },
-  { type: NeedType.SHELTER,       icon: <Home className="h-7 w-7" />,           color: 'text-green-600 bg-green-50 dark:bg-green-950' },
-  { type: NeedType.MENTAL_HEALTH, icon: <Heart className="h-7 w-7" />,          color: 'text-purple-600 bg-purple-50 dark:bg-purple-950' },
-  { type: NeedType.INFRASTRUCTURE,icon: <Building2 className="h-7 w-7" />,      color: 'text-orange-600 bg-orange-50 dark:bg-orange-950' },
+  {
+    type: NeedType.RESCUE,
+    icon: <Anchor className="h-7 w-7" />,
+    color: 'text-red-600 bg-red-50 dark:bg-red-950',
+  },
+  {
+    type: NeedType.FOOD,
+    icon: <UtensilsCrossed className="h-7 w-7" />,
+    color: 'text-amber-600 bg-amber-50 dark:bg-amber-950',
+  },
+  {
+    type: NeedType.MEDICINE,
+    icon: <Cross className="h-7 w-7" />,
+    color: 'text-blue-600 bg-blue-50 dark:bg-blue-950',
+  },
+  {
+    type: NeedType.SHELTER,
+    icon: <Home className="h-7 w-7" />,
+    color: 'text-green-600 bg-green-50 dark:bg-green-950',
+  },
+  {
+    type: NeedType.MENTAL_HEALTH,
+    icon: <Heart className="h-7 w-7" />,
+    color: 'text-purple-600 bg-purple-50 dark:bg-purple-950',
+  },
+  {
+    type: NeedType.INFRASTRUCTURE,
+    icon: <Building2 className="h-7 w-7" />,
+    color: 'text-orange-600 bg-orange-50 dark:bg-orange-950',
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -114,7 +141,7 @@ function NeedTypeCard({
       onClick={() => onSelect(type)}
       className={[
         'flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-xl border p-3 text-center transition-all',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
+        'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1',
         selected
           ? 'border-primary bg-primary/5 shadow-sm'
           : 'border-border bg-card hover:border-primary/40 hover:bg-accent',
@@ -145,15 +172,11 @@ function Step1({
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-semibold text-foreground">{t('report.step1.title')}</h2>
-        <p className="mt-0.5 text-sm text-muted-foreground">{t('report.step1.subtitle')}</p>
+        <h2 className="text-foreground text-lg font-semibold">{t('report.step1.title')}</h2>
+        <p className="text-muted-foreground mt-0.5 text-sm">{t('report.step1.subtitle')}</p>
       </div>
 
-      <div
-        role="radiogroup"
-        aria-label="Type of help needed"
-        className="grid grid-cols-2 gap-3"
-      >
+      <div role="radiogroup" aria-label="Type of help needed" className="grid grid-cols-2 gap-3">
         {NEED_TYPES.map(({ type, icon, color }) => (
           <NeedTypeCard
             key={type}
@@ -167,8 +190,10 @@ function Step1({
       </div>
 
       {selected !== null && (
-        <div className="rounded-lg bg-secondary/60 px-3 py-2 text-sm text-muted-foreground">
-          <span className="font-medium text-foreground">{t(`report.type.${selected}` as Parameters<typeof t>[0])}</span>
+        <div className="bg-secondary/60 text-muted-foreground rounded-lg px-3 py-2 text-sm">
+          <span className="text-foreground font-medium">
+            {t(`report.type.${selected}` as Parameters<typeof t>[0])}
+          </span>
           {' — '}
           {t(`report.type.${selected}.desc` as Parameters<typeof t>[0])}
         </div>
@@ -178,7 +203,7 @@ function Step1({
         type="button"
         onClick={onNext}
         disabled={selected === null}
-        className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-base font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {t('report.nav.next')}
         <ChevronRight className="h-5 w-5" aria-hidden="true" />
@@ -191,13 +216,7 @@ function Step1({
 // Step 2 — Description
 // ---------------------------------------------------------------------------
 
-function PeopleStepper({
-  value,
-  onChange,
-}: {
-  value: number;
-  onChange: (n: number) => void;
-}) {
+function PeopleStepper({ value, onChange }: { value: number; onChange: (n: number) => void }) {
   const PRESETS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
   const isCustom = value > 9;
 
@@ -212,7 +231,7 @@ function PeopleStepper({
             aria-pressed={value === n}
             className={[
               'flex h-12 w-12 items-center justify-center rounded-lg border text-sm font-semibold transition-colors',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2',
               value === n
                 ? 'border-primary bg-primary text-primary-foreground'
                 : 'border-border bg-background text-foreground hover:bg-accent',
@@ -229,7 +248,7 @@ function PeopleStepper({
           aria-pressed={isCustom}
           className={[
             'flex h-12 items-center justify-center rounded-lg border px-3 text-sm font-semibold transition-colors',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2',
             isCustom
               ? 'border-primary bg-primary text-primary-foreground'
               : 'border-border bg-background text-foreground hover:bg-accent',
@@ -247,7 +266,7 @@ function PeopleStepper({
             type="button"
             onClick={() => onChange(Math.max(10, value - 1))}
             aria-label="Decrease"
-            className="flex h-12 w-12 items-center justify-center rounded-lg border border-border bg-background text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="border-border bg-background text-foreground hover:bg-accent focus-visible:ring-ring flex h-12 w-12 items-center justify-center rounded-lg border focus-visible:outline-none focus-visible:ring-2"
           >
             <Minus className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -258,7 +277,7 @@ function PeopleStepper({
             type="button"
             onClick={() => onChange(Math.min(1000, value + 1))}
             aria-label="Increase"
-            className="flex h-12 w-12 items-center justify-center rounded-lg border border-border bg-background text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="border-border bg-background text-foreground hover:bg-accent focus-visible:ring-ring flex h-12 w-12 items-center justify-center rounded-lg border focus-visible:outline-none focus-visible:ring-2"
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -298,9 +317,7 @@ function Step2({
       return;
     }
 
-    fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${key}`,
-    )
+    fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${key}`)
       .then((r) => r.json())
       .then((data: { results?: Array<{ formatted_address?: string }> }) => {
         const name = data.results?.[0]?.formatted_address ?? `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
@@ -311,7 +328,7 @@ function Step2({
         updateState({ locationName: `${lat?.toFixed(4)}, ${lng?.toFixed(4)}` });
       })
       .finally(() => setGeocoding(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lat, lng]);
 
   const validate = (): boolean => {
@@ -335,10 +352,10 @@ function Step2({
     <div className="space-y-5">
       {/* Location */}
       <div className="space-y-1.5">
-        <p className="text-sm font-medium text-foreground">{t('report.step2.location.label')}</p>
+        <p className="text-foreground text-sm font-medium">{t('report.step2.location.label')}</p>
         {geoLoading || geocoding ? (
-          <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary px-3 py-2.5 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin shrink-0" aria-hidden="true" />
+          <div className="border-border bg-secondary text-muted-foreground flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm">
+            <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden="true" />
             {t('report.step2.location.detecting')}
           </div>
         ) : formState.isEditingLocation ? (
@@ -349,7 +366,7 @@ function Step2({
               onChange={(e) => updateState({ locationOverride: e.target.value })}
               placeholder={t('report.step2.location.manual.placeholder')}
               aria-label={t('report.step2.location.manual')}
-              className="flex-1 rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="border-border bg-background text-foreground placeholder:text-muted-foreground focus-visible:ring-ring flex-1 rounded-lg border px-3 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2"
             />
             <button
               type="button"
@@ -359,20 +376,23 @@ function Step2({
                   isEditingLocation: false,
                 });
               }}
-              className="rounded-lg bg-primary px-3 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring rounded-lg px-3 py-2.5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2"
             >
               Save
             </button>
           </div>
         ) : (
           <div className="flex items-center gap-2">
-            <div className="flex flex-1 items-start gap-2 rounded-lg border border-border bg-secondary/50 px-3 py-2.5">
+            <div className="border-border bg-secondary/50 flex flex-1 items-start gap-2 rounded-lg border px-3 py-2.5">
               {geoError != null ? (
-                <MapPinOff className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                <MapPinOff
+                  className="text-muted-foreground mt-0.5 h-4 w-4 shrink-0"
+                  aria-hidden="true"
+                />
               ) : (
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                <MapPin className="text-primary mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
               )}
-              <p className="text-sm text-foreground line-clamp-2">
+              <p className="text-foreground line-clamp-2 text-sm">
                 {locationDisplay || (geoError != null ? t('report.error.location') : '…')}
               </p>
             </div>
@@ -383,7 +403,7 @@ function Step2({
                 setLocalName(formState.locationName);
               }}
               aria-label={t('report.step2.location.edit')}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="border-border bg-background text-muted-foreground hover:bg-accent focus-visible:ring-ring flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-colors focus-visible:outline-none focus-visible:ring-2"
             >
               <Pencil className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -393,15 +413,13 @@ function Step2({
 
       {/* Voice recorder */}
       <div className="space-y-1.5">
-        <p className="text-sm font-medium text-foreground">{t('report.step2.voice.label')}</p>
-        <VoiceRecorder
-          onRecorded={(base64) => updateState({ voiceBase64: base64 })}
-        />
+        <p className="text-foreground text-sm font-medium">{t('report.step2.voice.label')}</p>
+        <VoiceRecorder onRecorded={(base64) => updateState({ voiceBase64: base64 })} />
       </div>
 
       {/* Text description */}
       <div className="space-y-1.5">
-        <label htmlFor="description" className="block text-sm font-medium text-foreground">
+        <label htmlFor="description" className="text-foreground block text-sm font-medium">
           {t('report.step2.text.label')}
         </label>
         <textarea
@@ -416,13 +434,17 @@ function Step2({
           aria-describedby={descError !== null ? 'desc-error' : undefined}
           rows={4}
           className={[
-            'w-full resize-none rounded-xl border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            'bg-background text-foreground placeholder:text-muted-foreground w-full resize-none rounded-xl border px-3 py-2.5 text-sm',
+            'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2',
             descError !== null ? 'border-destructive' : 'border-border',
           ].join(' ')}
         />
         {descError !== null && (
-          <p id="desc-error" role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
+          <p
+            id="desc-error"
+            role="alert"
+            className="text-destructive flex items-center gap-1.5 text-sm"
+          >
             <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
             {descError}
           </p>
@@ -431,18 +453,13 @@ function Step2({
 
       {/* Photo */}
       <div className="space-y-1.5">
-        <p className="text-sm font-medium text-foreground">{t('report.step2.photo.label')}</p>
-        <PhotoUploader
-          userId={userId}
-          onUploaded={(url) => updateState({ photoUrl: url })}
-        />
+        <p className="text-foreground text-sm font-medium">{t('report.step2.photo.label')}</p>
+        <PhotoUploader userId={userId} onUploaded={(url) => updateState({ photoUrl: url })} />
       </div>
 
       {/* People count */}
       <div className="space-y-2">
-        <p className="text-sm font-medium text-foreground">
-          {t('report.step2.count.label')}
-        </p>
+        <p className="text-foreground text-sm font-medium">{t('report.step2.count.label')}</p>
         <PeopleStepper
           value={formState.affectedCount}
           onChange={(n) => updateState({ affectedCount: n })}
@@ -450,15 +467,15 @@ function Step2({
       </div>
 
       {/* Vulnerable flag */}
-      <label className="flex min-h-[48px] cursor-pointer items-center gap-3 rounded-xl border border-border bg-card px-4 py-3">
+      <label className="border-border bg-card flex min-h-[48px] cursor-pointer items-center gap-3 rounded-xl border px-4 py-3">
         <input
           type="checkbox"
           checked={formState.hasVulnerable}
           onChange={(e) => updateState({ hasVulnerable: e.target.checked })}
-          className="h-5 w-5 rounded border-border accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+          className="border-border accent-primary focus-visible:ring-ring h-5 w-5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1"
           aria-label={t('report.step2.vulnerable.label')}
         />
-        <span className="text-sm text-foreground">{t('report.step2.vulnerable.label')}</span>
+        <span className="text-foreground text-sm">{t('report.step2.vulnerable.label')}</span>
       </label>
 
       {/* Navigation */}
@@ -466,7 +483,7 @@ function Step2({
         <button
           type="button"
           onClick={onBack}
-          className="flex min-h-[48px] items-center gap-1.5 rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="border-border bg-background text-foreground hover:bg-accent focus-visible:ring-ring flex min-h-[48px] items-center gap-1.5 rounded-xl border px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
           {t('report.nav.back')}
@@ -474,7 +491,7 @@ function Step2({
         <button
           type="button"
           onClick={handleNext}
-          className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl px-4 text-base font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         >
           {t('report.nav.next')}
           <ChevronRight className="h-5 w-5" aria-hidden="true" />
@@ -507,10 +524,10 @@ function Step3({
 
   return (
     <div className="space-y-5">
-      <h2 className="text-lg font-semibold text-foreground">{t('report.step3.title')}</h2>
+      <h2 className="text-foreground text-lg font-semibold">{t('report.step3.title')}</h2>
 
       {/* Summary card */}
-      <div className="divide-y divide-border rounded-xl border border-border bg-card">
+      <div className="divide-border border-border bg-card divide-y rounded-xl border">
         {/* Need type */}
         <div className="flex items-center gap-3 px-4 py-3">
           <div
@@ -520,19 +537,21 @@ function Step3({
             {needEntry?.icon}
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">{t('report.step3.type')}</p>
-            <p className="font-medium text-foreground">
-              {formState.type != null ? t(`report.type.${formState.type}` as Parameters<typeof t>[0]) : ''}
+            <p className="text-muted-foreground text-xs">{t('report.step3.type')}</p>
+            <p className="text-foreground font-medium">
+              {formState.type != null
+                ? t(`report.type.${formState.type}` as Parameters<typeof t>[0])
+                : ''}
             </p>
           </div>
         </div>
 
         {/* Location */}
         <div className="flex items-start gap-3 px-4 py-3">
-          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <MapPin className="text-muted-foreground mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           <div>
-            <p className="text-xs text-muted-foreground">{t('report.step3.location')}</p>
-            <p className="text-sm text-foreground">
+            <p className="text-muted-foreground text-xs">{t('report.step3.location')}</p>
+            <p className="text-foreground text-sm">
               {formState.locationName || formState.locationOverride}
             </p>
           </div>
@@ -541,32 +560,33 @@ function Step3({
         {/* Description */}
         {formState.description.trim().length > 0 && (
           <div className="px-4 py-3">
-            <p className="text-xs text-muted-foreground">{t('report.step3.description')}</p>
-            <p className="mt-0.5 text-sm text-foreground line-clamp-3">
-              {formState.description}
-            </p>
+            <p className="text-muted-foreground text-xs">{t('report.step3.description')}</p>
+            <p className="text-foreground mt-0.5 line-clamp-3 text-sm">{formState.description}</p>
           </div>
         )}
 
         {/* Attachments */}
         <div className="flex flex-wrap gap-3 px-4 py-3">
           {formState.voiceBase64 !== null && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-foreground">
-              🎙 {t('report.step3.voice')}
+            <span className="bg-secondary text-foreground inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium">
+              <Mic className="h-3.5 w-3.5" aria-hidden="true" />
+              {t('report.step3.voice')}
             </span>
           )}
           {formState.photoUrl !== null && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-foreground">
-              📷 {t('report.step3.photo')}
+            <span className="bg-secondary text-foreground inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium">
+              <Camera className="h-3.5 w-3.5" aria-hidden="true" />
+              {t('report.step3.photo')}
             </span>
           )}
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-foreground">
+          <span className="bg-secondary text-foreground inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium">
             <Users className="h-3.5 w-3.5" aria-hidden="true" />
             {t('report.step3.count', { count: formState.affectedCount })}
           </span>
           {formState.hasVulnerable && (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-300">
-              ⚠️ {t('report.step3.vulnerable')}
+              <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
+              {t('report.step3.vulnerable')}
             </span>
           )}
         </div>
@@ -577,13 +597,13 @@ function Step3({
         <div
           role="status"
           aria-live="polite"
-          className="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/5 px-3 py-2.5 text-sm text-foreground"
+          className="border-warning/30 bg-warning/5 text-foreground flex items-start gap-2 rounded-lg border px-3 py-2.5 text-sm"
         >
-          <WifiOff className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
+          <WifiOff className="text-warning mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           <div>
             <p>{t('report.step3.offline_note')}</p>
             {pendingCount > 0 && (
-              <p className="mt-0.5 text-muted-foreground">
+              <p className="text-muted-foreground mt-0.5">
                 {t('report.step3.queue_note', { count: pendingCount })}
               </p>
             )}
@@ -597,7 +617,7 @@ function Step3({
           type="button"
           onClick={onBack}
           disabled={submitting}
-          className="flex min-h-[48px] items-center gap-1.5 rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
+          className="border-border bg-background text-foreground hover:bg-accent focus-visible:ring-ring flex min-h-[48px] items-center gap-1.5 rounded-xl border px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 disabled:opacity-60"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
           {t('report.nav.back')}
@@ -607,7 +627,7 @@ function Step3({
           onClick={onSubmit}
           disabled={submitting}
           aria-busy={submitting}
-          className="flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-xl px-4 text-base font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-60"
         >
           {submitting ? (
             <>
@@ -639,7 +659,7 @@ function StepIndicator({ step }: { step: Step }) {
           aria-current={step === s ? 'step' : undefined}
           className={[
             'h-1.5 rounded-full transition-all duration-300',
-            s === step ? 'w-8 bg-primary' : s < step ? 'w-4 bg-primary/50' : 'w-4 bg-secondary',
+            s === step ? 'bg-primary w-8' : s < step ? 'bg-primary/50 w-4' : 'bg-secondary w-4',
           ].join(' ')}
         />
       ))}
@@ -678,8 +698,7 @@ export function NeedReportForm({ userId, onSuccess }: NeedReportFormProps) {
     gpsLng: null,
   });
 
-  const update = (patch: Partial<FormState>) =>
-    setForm((prev) => ({ ...prev, ...patch }));
+  const update = (patch: Partial<FormState>) => setForm((prev) => ({ ...prev, ...patch }));
 
   const handleSubmit = async () => {
     if (form.type === null) return;
@@ -690,7 +709,10 @@ export function NeedReportForm({ userId, onSuccess }: NeedReportFormProps) {
     const locationName =
       form.isEditingLocation && form.locationOverride.trim().length > 0
         ? form.locationOverride
-        : form.locationName;
+        : form.locationName ||
+          (form.gpsLat != null && form.gpsLng != null
+            ? `${form.gpsLat.toFixed(5)}, ${form.gpsLng.toFixed(5)}`
+            : '');
 
     const location = {
       lat: form.gpsLat ?? 0,
@@ -745,7 +767,9 @@ export function NeedReportForm({ userId, onSuccess }: NeedReportFormProps) {
           language: 'en',
           reportId: finalReportId,
         }),
-      }).catch(() => { /* non-fatal */ });
+      }).catch(() => {
+        /* non-fatal */
+      });
 
       setSubmitting(false);
       onSuccess(finalReportId, false);
@@ -773,7 +797,9 @@ export function NeedReportForm({ userId, onSuccess }: NeedReportFormProps) {
         <Step1
           selected={form.type}
           onSelect={(type) => update({ type })}
-          onNext={() => { if (form.type !== null) setStep(2); }}
+          onNext={() => {
+            if (form.type !== null) setStep(2);
+          }}
         />
       )}
 
@@ -803,14 +829,14 @@ export function NeedReportForm({ userId, onSuccess }: NeedReportFormProps) {
         <div
           role="alert"
           aria-live="assertive"
-          className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive"
+          className="border-destructive/30 bg-destructive/5 text-destructive flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm"
         >
           <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
           {submitError}
           <button
             type="button"
             onClick={() => setSubmitError(null)}
-            className="ml-auto text-xs underline hover:no-underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
+            className="focus-visible:ring-ring ml-auto rounded text-xs underline hover:no-underline focus-visible:outline-none focus-visible:ring-1"
           >
             {t('common.retry')}
           </button>

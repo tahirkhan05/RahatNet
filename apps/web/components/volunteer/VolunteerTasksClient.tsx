@@ -32,35 +32,44 @@
 
 import * as React from 'react';
 import {
-  CheckCircle2, XCircle, ChevronDown, ChevronUp,
-  Loader2, AlertCircle, MapIcon, Zap, Battery,
+  CheckCircle2,
+  XCircle,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  AlertCircle,
+  MapIcon,
+  Zap,
+  Battery,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import {
-  NeedStatus, NeedSeverity, COLLECTIONS,
-  type CanonicalNeed, type VolunteerProfile,
+  NeedStatus,
+  NeedSeverity,
+  COLLECTIONS,
+  type CanonicalNeed,
+  type VolunteerProfile,
 } from '@rahatnet/types';
-import { useAuth }              from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { useVolunteerLocation } from '@/hooks/useVolunteerLocation';
 import { useTaskNotifications } from '@/hooks/useTaskNotifications';
-import { useOffline }           from '@/hooks/useOffline';
-import { useVolunteerStore }    from '@/store/volunteerStore';
-import { TaskCard }             from './TaskCard';
-import { TaskAcceptModal }      from './TaskAcceptModal';
+import { useOffline } from '@/hooks/useOffline';
+import { useVolunteerStore } from '@/store/volunteerStore';
+import { TaskCard } from './TaskCard';
+import { TaskAcceptModal } from './TaskAcceptModal';
+import { NeedDetailSheet } from './NeedDetailSheet';
 
 // ---------------------------------------------------------------------------
 // Haversine (metres)
 // ---------------------------------------------------------------------------
 
 function haversineM(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R  = 6_371_000;
+  const R = 6_371_000;
   const φ1 = (lat1 * Math.PI) / 180;
   const φ2 = (lat2 * Math.PI) / 180;
   const Δφ = ((lat2 - lat1) * Math.PI) / 180;
   const Δλ = ((lng2 - lng1) * Math.PI) / 180;
-  const a  =
-    Math.sin(Δφ / 2) ** 2 +
-    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
+  const a = Math.sin(Δφ / 2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
@@ -69,22 +78,24 @@ function haversineM(lat1: number, lng1: number, lat2: number, lng2: number): num
 // ---------------------------------------------------------------------------
 
 interface VolunteerData {
-  activeAssignment: { id: string; need: CanonicalNeed } | null;
-  nearbyNeeds:      CanonicalNeed[];
-  pastNeeds:        CanonicalNeed[];
-  isLoading:        boolean;
+  activeAssignments: { id: string; need: CanonicalNeed }[];
+  nearbyNeeds: CanonicalNeed[];
+  pastNeeds: CanonicalNeed[];
+  isLoading: boolean;
 }
 
 function useVolunteerData(
-  uid:            string,
+  uid: string,
   disasterEventId: string,
-  volunteerLat:   number | null,
-  volunteerLng:   number | null,
+  volunteerLat: number | null,
+  volunteerLng: number | null,
 ): VolunteerData {
-  const [activeAssignment, setActiveAssignment] = React.useState<{ id: string; need: CanonicalNeed } | null>(null);
-  const [nearbyNeeds,      setNearbyNeeds]      = React.useState<CanonicalNeed[]>([]);
-  const [pastNeeds,        setPastNeeds]        = React.useState<CanonicalNeed[]>([]);
-  const [isLoading,        setIsLoading]        = React.useState(true);
+  const [activeAssignments, setActiveAssignments] = React.useState<
+    { id: string; need: CanonicalNeed }[]
+  >([]);
+  const [nearbyNeeds, setNearbyNeeds] = React.useState<CanonicalNeed[]>([]);
+  const [pastNeeds, setPastNeeds] = React.useState<CanonicalNeed[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   // Subscribe to active assignment.
   React.useEffect(() => {
@@ -101,21 +112,28 @@ function useVolunteerData(
         unsub = subscribeToDocuments<import('@rahatnet/types').Assignment>(
           COLLECTIONS.ASSIGNMENTS,
           (docs) => {
-            const active = docs.find(
+            const actives = docs.filter(
               (d) =>
                 d.status === 'ACCEPTED' ||
                 d.status === 'IN_PROGRESS' ||
                 d.status === 'NOTIFIED' ||
                 d.status === 'CREATED',
             );
-            if (active) {
+            if (actives.length > 0) {
               void (async () => {
                 const { getDocument } = await import('@/lib/firebase/firestore');
-                const need = await getDocument<CanonicalNeed>(COLLECTIONS.NEEDS, active.needId);
-                if (need) setActiveAssignment({ id: active.id, need });
+                const results = await Promise.all(
+                  actives.map(async (a) => {
+                    const need = await getDocument<CanonicalNeed>(COLLECTIONS.NEEDS, a.needId);
+                    return need ? { id: a.id, need } : null;
+                  }),
+                );
+                setActiveAssignments(
+                  results.filter((r): r is { id: string; need: CanonicalNeed } => r !== null),
+                );
               })();
             } else {
-              setActiveAssignment(null);
+              setActiveAssignments([]);
             }
             setIsLoading(false);
           },
@@ -198,34 +216,38 @@ function useVolunteerData(
     })();
   }, [uid]);
 
-  return { activeAssignment, nearbyNeeds, pastNeeds, isLoading };
+  return { activeAssignments, nearbyNeeds, pastNeeds, isLoading };
 }
 
 // ---------------------------------------------------------------------------
 // Toast (lightweight)
 // ---------------------------------------------------------------------------
 
-interface Toast { id: string; message: string; type: 'success' | 'error' }
+interface Toast {
+  id: string;
+  message: string;
+  type: 'success' | 'error';
+}
 
 function ToastList({ toasts, dismiss }: { toasts: Toast[]; dismiss: (id: string) => void }) {
   return (
-    <div className="fixed bottom-6 left-4 right-4 z-50 space-y-2 pointer-events-none">
+    <div className="pointer-events-none fixed bottom-6 left-4 right-4 z-50 space-y-2">
       {toasts.map((t) => (
         <div
           key={t.id}
           role="status"
           aria-live="polite"
           className={[
-            'flex items-center gap-2 rounded-2xl px-4 py-3 shadow-lg text-base font-medium',
-            'pointer-events-auto animate-slide-in',
-            t.type === 'success'
-              ? 'bg-success text-white'
-              : 'bg-destructive text-white',
+            'flex items-center gap-2 rounded-2xl px-4 py-3 text-base font-medium shadow-lg',
+            'animate-slide-in pointer-events-auto',
+            t.type === 'success' ? 'bg-success text-white' : 'bg-destructive text-white',
           ].join(' ')}
         >
-          {t.type === 'success'
-            ? <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden="true" />
-            : <AlertCircle  className="h-5 w-5 shrink-0" aria-hidden="true" />}
+          {t.type === 'success' ? (
+            <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden="true" />
+          ) : (
+            <AlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
+          )}
           {t.message}
         </div>
       ))}
@@ -263,13 +285,15 @@ export function VolunteerTasksClient() {
         if (snap.exists()) {
           setAvailability(snap.data()['isAvailable'] === true);
         }
-      } catch { /* silent */ }
+      } catch {
+        /* silent */
+      }
     })();
   }, [user?.uid]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Location ──────────────────────────────────────────────────────────────
   const location = useVolunteerLocation({
-    uid:         user?.uid ?? null,
+    uid: user?.uid ?? null,
     isAvailable,
   });
 
@@ -282,15 +306,13 @@ export function VolunteerTasksClient() {
   }, []);
 
   const { pendingAssignment, clearPendingAssignment } = useTaskNotifications({
-    uid:        user?.uid ?? null,
-    onToast:    (msg) => addToast(msg, 'success'),
+    uid: user?.uid ?? null,
+    onToast: (msg) => addToast(msg, 'success'),
     onNavigate: (url) => router.push(url),
   });
 
   // ── Data ──────────────────────────────────────────────────────────────────
-  const {
-    activeAssignment, nearbyNeeds, pastNeeds, isLoading,
-  } = useVolunteerData(
+  const { activeAssignments, nearbyNeeds, pastNeeds, isLoading } = useVolunteerData(
     user?.uid ?? '',
     ACTIVE_DISASTER_ID,
     location.lat,
@@ -298,6 +320,7 @@ export function VolunteerTasksClient() {
   );
 
   const [pastExpanded, setPastExpanded] = React.useState(false);
+  const [detailNeed, setDetailNeed] = React.useState<CanonicalNeed | null>(null);
 
   // ── High contrast detection ───────────────────────────────────────────────
   const [highContrast, setHighContrast] = React.useState(false);
@@ -312,18 +335,16 @@ export function VolunteerTasksClient() {
   // Availability is controlled from the dashboard — no toggle here.
 
   // ── Task actions ──────────────────────────────────────────────────────────
-  const handleNavigate = (need: CanonicalNeed) => {
-    if (!activeAssignment) return;
-    router.push(`/volunteer/navigate?needId=${need.id}&assignmentId=${activeAssignment.id}`);
+  const handleNavigate = (need: CanonicalNeed, assignmentId: string) => {
+    router.push(`/volunteer/navigate?needId=${need.id}&assignmentId=${assignmentId}`);
   };
 
-  const handleComplete = async (need: CanonicalNeed) => {
-    if (!activeAssignment) return;
+  const handleComplete = async (_need: CanonicalNeed, assignmentId: string) => {
     try {
-      const res = await fetch(`/api/dispatch/${activeAssignment.id}`, {
-        method:  'PATCH',
+      const res = await fetch(`/api/dispatch/${assignmentId}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ status: 'COMPLETED' }),
+        body: JSON.stringify({ status: 'COMPLETED' }),
       });
       if (!res.ok) throw new Error('Failed to mark complete');
       addToast('Task marked as complete!', 'success');
@@ -332,14 +353,13 @@ export function VolunteerTasksClient() {
     }
   };
 
-  const handleIssue = async (need: CanonicalNeed) => {
-    if (!activeAssignment) return;
+  const handleIssue = async (_need: CanonicalNeed, assignmentId: string) => {
     if (!confirm('Report this task as failed (access blocked, situation changed)?')) return;
     try {
-      const res = await fetch(`/api/dispatch/${activeAssignment.id}`, {
-        method:  'PATCH',
+      const res = await fetch(`/api/dispatch/${assignmentId}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ status: 'FAILED', declinedNote: 'Issue reported by volunteer' }),
+        body: JSON.stringify({ status: 'FAILED', declinedNote: 'Issue reported by volunteer' }),
       });
       if (!res.ok) throw new Error('Failed to report issue');
       addToast('Issue reported. Coordinator will reassign.', 'success');
@@ -351,9 +371,9 @@ export function VolunteerTasksClient() {
   const handleInterest = async (need: CanonicalNeed) => {
     try {
       await fetch('/api/dispatch/interest', {
-        method:  'POST',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ needId: need.id, volunteerId: user?.uid }),
+        body: JSON.stringify({ needId: need.id, volunteerId: user?.uid }),
       });
       addToast('Interest noted — coordinator will confirm assignment.', 'success');
     } catch {
@@ -364,30 +384,25 @@ export function VolunteerTasksClient() {
   // ── Loading / auth gate ───────────────────────────────────────────────────
   if (authLoading || isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden="true" />
+      <div className="bg-background flex min-h-screen items-center justify-center">
+        <Loader2 className="text-primary h-10 w-10 animate-spin" aria-hidden="true" />
       </div>
     );
   }
 
-  const distanceToActive =
-    activeAssignment && location.lat !== null && location.lng !== null
-      ? haversineM(location.lat, location.lng, activeAssignment.need.location.lat, activeAssignment.need.location.lng)
+  const distanceForAssignment = (need: CanonicalNeed) =>
+    location.lat !== null && location.lng !== null
+      ? haversineM(location.lat, location.lng, need.location.lat, need.location.lng)
       : undefined;
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div
-      className={[
-        'min-h-screen bg-background pb-24',
-        highContrast ? 'hc' : '',
-      ].join(' ')}
-    >
+    <div className={['bg-background min-h-screen pb-24', highContrast ? 'hc' : ''].join(' ')}>
       {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-border bg-card px-4 py-3">
+      <header className="border-border bg-card sticky top-0 z-30 border-b px-4 py-3">
         <div className="flex items-center gap-4">
           <div className="min-w-0 flex-1">
-            <p className="text-lg font-bold text-foreground truncate">
+            <p className="text-foreground truncate text-lg font-bold">
               {volunteer?.displayName ?? 'Volunteer'}
             </p>
             {/* Skill badges */}
@@ -396,7 +411,7 @@ export function VolunteerTasksClient() {
                 {(volunteer as VolunteerProfile).skills.slice(0, 3).map((s) => (
                   <span
                     key={s}
-                    className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
+                    className="bg-secondary text-muted-foreground rounded-full px-2 py-0.5 text-[11px] font-medium"
                   >
                     {s.replace(/_/g, ' ')}
                   </span>
@@ -415,7 +430,7 @@ export function VolunteerTasksClient() {
             </div>
           )}
           {location.error && (
-            <div className="flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-xs text-destructive">
+            <div className="bg-destructive/10 text-destructive flex items-center gap-1 rounded-full px-2 py-0.5 text-xs">
               <AlertCircle className="h-3 w-3" aria-hidden="true" />
               GPS unavailable
             </div>
@@ -424,48 +439,57 @@ export function VolunteerTasksClient() {
       </header>
 
       {/* Main content */}
-      <main className="px-4 py-4 space-y-5">
-
-        {/* ── Assigned task ── */}
-        {activeAssignment !== null ? (
-          <section aria-label="Your assigned task">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-semibold text-foreground">
+      <main className="space-y-5 px-4 py-4">
+        {/* ── Assigned tasks ── */}
+        {activeAssignments.length > 0 ? (
+          <section aria-label="Your assigned tasks">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-foreground text-base font-semibold">
                 Assigned to you
+                {activeAssignments.length > 1 && (
+                  <span className="bg-primary/10 text-primary ml-2 rounded-full px-2 py-0.5 text-xs font-medium">
+                    {activeAssignments.length}
+                  </span>
+                )}
               </h2>
               <button
                 type="button"
                 onClick={() => router.push('/volunteer/map')}
-                className="flex items-center gap-1.5 rounded-xl bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary"
+                className="bg-primary/10 text-primary flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-medium"
               >
                 <MapIcon className="h-4 w-4" aria-hidden="true" />
                 View map
               </button>
             </div>
-            <TaskCard
-              need={activeAssignment.need}
-              context="active"
-              distanceM={distanceToActive}
-              onNavigate={handleNavigate}
-              onComplete={handleComplete}
-              onIssue={handleIssue}
-            />
+            <div className="space-y-3">
+              {activeAssignments.map(({ id: assignmentId, need }) => (
+                <TaskCard
+                  key={assignmentId}
+                  need={need}
+                  context="active"
+                  distanceM={distanceForAssignment(need)}
+                  onNavigate={(n) => handleNavigate(n, assignmentId)}
+                  onComplete={(n) => handleComplete(n, assignmentId)}
+                  onIssue={(n) => handleIssue(n, assignmentId)}
+                />
+              ))}
+            </div>
           </section>
         ) : isAvailable ? (
           /* ── Available tasks (express interest) ── */
           <section aria-label="Available tasks">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-semibold text-foreground">Available Tasks</h2>
-              <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-muted-foreground">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-foreground text-base font-semibold">Available Tasks</h2>
+              <span className="bg-secondary text-muted-foreground rounded-full px-2 py-0.5 text-xs">
                 {nearbyNeeds.length} found
               </span>
             </div>
 
             {nearbyNeeds.length === 0 ? (
               <div className="flex flex-col items-center gap-3 py-10 text-center">
-                <Zap className="h-10 w-10 text-muted-foreground" aria-hidden="true" />
-                <p className="text-base font-medium text-foreground">No nearby needs right now</p>
-                <p className="text-sm text-muted-foreground">
+                <Zap className="text-muted-foreground h-10 w-10" aria-hidden="true" />
+                <p className="text-foreground text-base font-medium">No nearby needs right now</p>
+                <p className="text-muted-foreground text-sm">
                   New tasks will appear here when you are assigned.
                 </p>
               </div>
@@ -483,6 +507,7 @@ export function VolunteerTasksClient() {
                       context="nearby"
                       distanceM={dist}
                       onInterest={handleInterest}
+                      onViewDetail={(n) => setDetailNeed(n)}
                     />
                   );
                 })}
@@ -492,12 +517,12 @@ export function VolunteerTasksClient() {
         ) : (
           /* ── Off-duty state ── */
           <section className="flex flex-col items-center gap-4 py-12 text-center">
-            <div className="rounded-full bg-secondary p-6">
-              <XCircle className="h-12 w-12 text-muted-foreground" aria-hidden="true" />
+            <div className="bg-secondary rounded-full p-6">
+              <XCircle className="text-muted-foreground h-12 w-12" aria-hidden="true" />
             </div>
             <div>
-              <p className="text-lg font-semibold text-foreground">You are off duty</p>
-              <p className="mt-1 text-base text-muted-foreground">
+              <p className="text-foreground text-lg font-semibold">You are off duty</p>
+              <p className="text-muted-foreground mt-1 text-base">
                 Toggle to Available to start receiving task assignments.
               </p>
             </div>
@@ -510,13 +535,15 @@ export function VolunteerTasksClient() {
             <button
               type="button"
               onClick={() => setPastExpanded((v) => !v)}
-              className="flex w-full items-center justify-between py-2 text-base font-semibold text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
+              className="text-muted-foreground hover:text-foreground focus-visible:ring-ring flex w-full items-center justify-between rounded py-2 text-base font-semibold focus-visible:outline-none focus-visible:ring-1"
               aria-expanded={pastExpanded}
             >
               Past Tasks ({pastNeeds.length})
-              {pastExpanded
-                ? <ChevronUp   className="h-5 w-5" aria-hidden="true" />
-                : <ChevronDown className="h-5 w-5" aria-hidden="true" />}
+              {pastExpanded ? (
+                <ChevronUp className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <ChevronDown className="h-5 w-5" aria-hidden="true" />
+              )}
             </button>
 
             {pastExpanded && (
@@ -539,8 +566,10 @@ export function VolunteerTasksClient() {
           distanceM={
             location.lat !== null && location.lng !== null
               ? haversineM(
-                  location.lat, location.lng,
-                  pendingAssignment.need.location.lat, pendingAssignment.need.location.lng,
+                  location.lat,
+                  location.lng,
+                  pendingAssignment.need.location.lat,
+                  pendingAssignment.need.location.lng,
                 )
               : undefined
           }
@@ -550,6 +579,28 @@ export function VolunteerTasksClient() {
           }}
           onDeclined={() => {
             clearPendingAssignment();
+          }}
+        />
+      )}
+
+      {/* Need detail sheet */}
+      {detailNeed !== null && (
+        <NeedDetailSheet
+          need={detailNeed}
+          distanceM={
+            location.lat !== null && location.lng !== null
+              ? haversineM(
+                  location.lat,
+                  location.lng,
+                  detailNeed.location.lat,
+                  detailNeed.location.lng,
+                )
+              : undefined
+          }
+          onClose={() => setDetailNeed(null)}
+          onConfirm={async (need) => {
+            await handleInterest(need);
+            setDetailNeed(null);
           }}
         />
       )}

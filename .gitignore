@@ -49,6 +49,13 @@ packages/types/dist/
 packages/types/dist-cjs/
 packages/ui/dist/
 
+# Compiled type artifacts generated in-place (not committed)
+packages/types/src/*.js
+packages/types/src/*.js.map
+packages/types/src/*.d.ts
+packages/types/src/*.d.ts.map
+setup-vercel-env.sh
+
 # Turbo
 .turbo/
 
@@ -91,3 +98,4 @@ Thumbs.db
 .cache/
 .parcel-cache/
 storybook-static/
+.vercel

@@ -13,16 +13,10 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  CheckCircle2,
-  WifiOff,
-  ClipboardList,
-  Plus,
-  AlertCircle,
-  Loader2,
-} from 'lucide-react';
+import { CheckCircle2, WifiOff, ClipboardList, Plus, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { NeedReportForm } from './NeedReportForm';
+import { SurveyReportForm } from './SurveyReportForm';
 import { t } from '@/lib/i18n/t';
 
 // ---------------------------------------------------------------------------
@@ -60,18 +54,18 @@ class ReportErrorBoundary extends React.Component<
       return (
         <div
           role="alert"
-          className="flex flex-col items-center gap-4 rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center"
+          className="border-destructive/30 bg-destructive/5 flex flex-col items-center gap-4 rounded-xl border p-6 text-center"
         >
-          <AlertCircle className="h-10 w-10 text-destructive" aria-hidden="true" />
+          <AlertCircle className="text-destructive h-10 w-10" aria-hidden="true" />
           <div>
-            <p className="font-semibold text-foreground">Something went wrong</p>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="text-foreground font-semibold">Something went wrong</p>
+            <p className="text-muted-foreground mt-1 text-sm">
               The form encountered an unexpected error. Your data has not been lost.
             </p>
           </div>
           <button
             onClick={this.handleReset}
-            className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring rounded-lg px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2"
           >
             {t('common.retry')}
           </button>
@@ -109,7 +103,7 @@ function Toast({ toast, onDismiss }: { toast: ToastMessage; onDismiss: (id: stri
     <div
       role="status"
       aria-live="polite"
-      className={`flex items-center gap-2 rounded-xl border px-4 py-3 text-sm shadow-lg animate-slide-in ${variants[toast.type]}`}
+      className={`animate-slide-in flex items-center gap-2 rounded-xl border px-4 py-3 text-sm shadow-lg ${variants[toast.type]}`}
     >
       {toast.type === 'success' && <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />}
       {toast.type === 'offline' && <WifiOff className="h-4 w-4 shrink-0" aria-hidden="true" />}
@@ -119,7 +113,13 @@ function Toast({ toast, onDismiss }: { toast: ToastMessage; onDismiss: (id: stri
   );
 }
 
-function ToastContainer({ toasts, onDismiss }: { toasts: ToastMessage[]; onDismiss: (id: string) => void }) {
+function ToastContainer({
+  toasts,
+  onDismiss,
+}: {
+  toasts: ToastMessage[];
+  onDismiss: (id: string) => void;
+}) {
   if (toasts.length === 0) return null;
   return (
     <div
@@ -157,24 +157,20 @@ function SuccessScreen({
         ].join(' ')}
         aria-hidden="true"
       >
-        {wasQueued ? (
-          <WifiOff className="h-10 w-10" />
-        ) : (
-          <CheckCircle2 className="h-10 w-10" />
-        )}
+        {wasQueued ? <WifiOff className="h-10 w-10" /> : <CheckCircle2 className="h-10 w-10" />}
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-xl font-semibold text-foreground">
+        <h2 className="text-foreground text-xl font-semibold">
           {wasQueued ? 'Report saved offline' : t('report.success.title')}
         </h2>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           {wasQueued
             ? 'Your report is saved and will be sent automatically when you reconnect.'
             : t('report.success.body')}
         </p>
         {!wasQueued && (
-          <p className="font-mono text-xs text-muted-foreground">
+          <p className="text-muted-foreground font-mono text-xs">
             {t('report.success.id', { id: reportId.slice(0, 8).toUpperCase() })}
           </p>
         )}
@@ -184,7 +180,7 @@ function SuccessScreen({
         <button
           type="button"
           onClick={onViewStatus}
-          className="flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="border-border bg-background text-foreground hover:bg-accent focus-visible:ring-ring flex min-h-[48px] items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2"
         >
           <ClipboardList className="h-4 w-4" aria-hidden="true" />
           {t('report.success.track')}
@@ -193,7 +189,7 @@ function SuccessScreen({
         <button
           type="button"
           onClick={onReportAnother}
-          className="flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring flex min-h-[48px] items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
           {t('report.success.new')}
@@ -212,7 +208,11 @@ type PageState =
   | { view: 'form' }
   | { view: 'success'; reportId: string; wasQueued: boolean };
 
-export function ReportPageClient() {
+interface ReportPageClientProps {
+  mode?: 'crisis' | 'survey';
+}
+
+export function ReportPageClient({ mode = 'crisis' }: ReportPageClientProps) {
   const router = useRouter();
   const { user, isLoading, isAuthenticated } = useAuth();
   const [pageState, setPageState] = React.useState<PageState>({ view: 'loading' });
@@ -252,8 +252,8 @@ export function ReportPageClient() {
     return (
       <div className="flex min-h-[200px] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
-          <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+          <Loader2 className="text-primary h-8 w-8 animate-spin" aria-hidden="true" />
+          <p className="text-muted-foreground text-sm">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -275,21 +275,28 @@ export function ReportPageClient() {
   }
 
   // ---- Form ----
+  const isSurvey = mode === 'survey';
   return (
     <>
       <div className="space-y-4">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Report a Need</h1>
-          <p className="text-sm text-muted-foreground">Tell us what help is needed</p>
+          <h1 className="text-foreground text-2xl font-semibold">
+            {isSurvey ? 'Community Survey' : 'Report a Need'}
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            {isSurvey
+              ? 'Record household vulnerability data for coordination planning'
+              : 'Tell us what help is needed'}
+          </p>
         </div>
 
         <ReportErrorBoundary>
-          {user !== null && (
-            <NeedReportForm
-              userId={user.uid}
-              onSuccess={handleSuccess}
-            />
-          )}
+          {user !== null &&
+            (isSurvey ? (
+              <SurveyReportForm userId={user.uid} onSuccess={handleSuccess} />
+            ) : (
+              <NeedReportForm userId={user.uid} onSuccess={handleSuccess} />
+            ))}
         </ReportErrorBoundary>
       </div>
 

@@ -36,6 +36,7 @@ Need resolved — analytics updated in BigQuery
 ## Key Features
 
 ### For Citizens (Flood Victims)
+
 - **One-tap need reporting** — select type, auto-detect GPS, speak in your language
 - **Voice + photo submission** — works on 2G, offline-first with IndexedDB queue
 - **8 Indian languages** — Hindi, Telugu, Tamil, Kannada, Malayalam, Bengali, Marathi, Gujarati
@@ -43,6 +44,7 @@ Need resolved — analytics updated in BigQuery
 - **Real-time status** — Submitted → Processing → Verified → Help on the way → Resolved
 
 ### For Volunteers
+
 - **Smart task assignment** — matched by skill (boat operator, doctor, cook, rescue swimmer)
 - **In-app navigation** — full Swiggy-style map with route, ETA, and citizen contact
 - **Live availability toggle** — turn on/off, synced across all devices instantly
@@ -50,6 +52,7 @@ Need resolved — analytics updated in BigQuery
 - **Offline map tiles** — cached for flood zones with poor connectivity
 
 ### For Coordinators (War Room)
+
 - **Full-screen live map** — Google Maps with emoji need pins (🆘🍛💊🏠), clustering, density rings
 - **AI priority queue** — needs ranked by Gemini urgency score (1-10)
 - **5 live analytics charts** — response time, resolution funnel, volunteer activity, need type breakdown, coverage
@@ -58,6 +61,7 @@ Need resolved — analytics updated in BigQuery
 - **Auto-process reports** — "Process" button runs Gemini classification + urgency scoring
 
 ### Proactive Trigger System
+
 - **IMD alert polling** — Cloud Function runs every 15 minutes
 - **Auto-activation** — when IMD issues a RED alert, war room opens before the first report comes in
 - **Google Alerts integration** — disaster detection from news and government sources
@@ -66,16 +70,16 @@ Need resolved — analytics updated in BigQuery
 
 ## AI Stack
 
-| Feature | Technology | What It Does |
-|---------|-----------|-------------|
-| Report deduplication | Gemini 1.5 Flash | 500 reports → 1 canonical need |
-| Urgency scoring | Gemini Vision + keywords | Photo analysis + text scoring → 1-10 score |
-| Need classification | Gemini 1.5 Flash | Auto-tags RESCUE/FOOD/MEDICINE/SHELTER/MENTAL_HEALTH/INFRASTRUCTURE |
-| Multilingual NLP | Google Cloud Translation API | Understands reports in 8 languages |
-| Voice transcription | Gemini multimodal | Audio → text → classification |
-| Volunteer dispatch | Distance Matrix + skill matching | Finds best-fit volunteer with real ETA |
-| Urgency prediction | Vertex AI (fallback: Gemini) | Tabular model for severity scoring |
-| Analytics | BigQuery | Real-time impact metrics for coordinators and NDRF |
+| Feature              | Technology                       | What It Does                                                        |
+| -------------------- | -------------------------------- | ------------------------------------------------------------------- |
+| Report deduplication | Gemini 1.5 Flash                 | 500 reports → 1 canonical need                                      |
+| Urgency scoring      | Gemini Vision + keywords         | Photo analysis + text scoring → 1-10 score                          |
+| Need classification  | Gemini 1.5 Flash                 | Auto-tags RESCUE/FOOD/MEDICINE/SHELTER/MENTAL_HEALTH/INFRASTRUCTURE |
+| Multilingual NLP     | Google Cloud Translation API     | Understands reports in 8 languages                                  |
+| Voice transcription  | Gemini multimodal                | Audio → text → classification                                       |
+| Volunteer dispatch   | Distance Matrix + skill matching | Finds best-fit volunteer with real ETA                              |
+| Urgency prediction   | Vertex AI (fallback: Gemini)     | Tabular model for severity scoring                                  |
+| Analytics            | BigQuery                         | Real-time impact metrics for coordinators and NDRF                  |
 
 ---
 
@@ -127,6 +131,7 @@ packages/
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 20+
 - pnpm 9+
 - Firebase project with Firestore, RTDB, Auth, Storage enabled
@@ -153,19 +158,19 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ### Environment Variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `NEXT_PUBLIC_FIREBASE_*` | ✅ | Firebase client config (from Firebase Console) |
-| `FIREBASE_SERVICE_ACCOUNT_BASE64` | ✅ | Firebase Admin SDK service account (base64) |
-| `GEMINI_API_KEY` | ✅ | Google AI Studio API key |
-| `NEXT_PUBLIC_GOOGLE_MAPS_KEY` | ✅ | Google Maps Platform API key |
-| `NEXT_PUBLIC_FCM_VAPID_KEY` | ✅ | Firebase Cloud Messaging VAPID key |
-| `SESSION_SECRET` | ✅ | 64-char random hex for session signing |
-| `NEXT_PUBLIC_ACTIVE_DISASTER_ID` | ✅ | Active disaster event ID |
-| `NEXT_PUBLIC_COORDINATOR_PHONE` | Optional | Emergency coordinator phone number |
-| `VERTEX_AI_ENDPOINT` | Optional | Vertex AI custom model endpoint (Phase 2) |
-| `UPSTASH_REDIS_REST_URL` | Optional | Distributed rate limiting |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Optional | Google Analytics |
+| Variable                          | Required | Description                                    |
+| --------------------------------- | -------- | ---------------------------------------------- |
+| `NEXT_PUBLIC_FIREBASE_*`          | ✅       | Firebase client config (from Firebase Console) |
+| `FIREBASE_SERVICE_ACCOUNT_BASE64` | ✅       | Firebase Admin SDK service account (base64)    |
+| `GEMINI_API_KEY`                  | ✅       | Google AI Studio API key                       |
+| `NEXT_PUBLIC_GOOGLE_MAPS_KEY`     | ✅       | Google Maps Platform API key                   |
+| `NEXT_PUBLIC_FCM_VAPID_KEY`       | ✅       | Firebase Cloud Messaging VAPID key             |
+| `SESSION_SECRET`                  | ✅       | 64-char random hex for session signing         |
+| `NEXT_PUBLIC_ACTIVE_DISASTER_ID`  | ✅       | Active disaster event ID                       |
+| `NEXT_PUBLIC_COORDINATOR_PHONE`   | Optional | Emergency coordinator phone number             |
+| `VERTEX_AI_ENDPOINT`              | Optional | Vertex AI custom model endpoint (Phase 2)      |
+| `UPSTASH_REDIS_REST_URL`          | Optional | Distributed rate limiting                      |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID`   | Optional | Google Analytics                               |
 
 ### Firebase Setup
 
@@ -193,23 +198,38 @@ npx firebase-tools deploy --only functions --project YOUR_PROJECT_ID
 
 ## Impact Metrics
 
-| Metric | Target | How Measured |
-|--------|--------|-------------|
-| Report to dispatch time | < 8 minutes | Assignment timestamp - creation timestamp |
-| Deduplication rate | 70% reduction | Canonical needs / raw reports ratio |
-| Coverage | Track % of needs addressed | Resolved needs / total needs |
-| Response time | Live in war room | ImpactAnalytics component |
+| Metric                  | Target                     | How Measured                              |
+| ----------------------- | -------------------------- | ----------------------------------------- |
+| Report to dispatch time | < 8 minutes                | Assignment timestamp - creation timestamp |
+| Deduplication rate      | 70% reduction              | Canonical needs / raw reports ratio       |
+| Coverage                | Track % of needs addressed | Resolved needs / total needs              |
+| Response time           | Live in war room           | ImpactAnalytics component                 |
+
+---
+
+## Problem Statement Alignment — NGO Survey Gap
+
+The problem statement specifically mentions: _"Local social groups and NGOs collect important information through **paper surveys and field reports**."_ A gap in the original build was that the platform only handled real-time crisis reports (citizens in panic). Pre-disaster vulnerability data from NGO field workers had no ingestion path.
+
+This has been closed with a **Community Survey mode** built directly into the citizen app:
+
+- **Structured household survey form** — NGO field workers walk door-to-door and record: household size, disability (type), elderly count, children under 12, pregnant, chronic illness, food insecurity, flood-risk zone, clean water access, surveyor name + organisation
+- **Same AI pipeline** — survey submissions flow through Gemini de-duplication and urgency scoring, appearing on the war room map as distinct grey 📋 pins alongside real-time crisis pins (red/amber)
+- **Mode toggle on the citizen dashboard** — a pill toggle switches between "Report a Need" (panic mode) and "Community Survey" (structured NGO mode), with separate history sections for each
+- **Survey detail page** — each survey is tappable, showing all structured vulnerability data in a readable breakdown (not just a description string)
+- **War room visibility** — unprocessed survey pins appear on the coordinator map immediately, before the AI pipeline runs. A "Survey Reports" metric card shows the count of pre-mapped vulnerabilities
+- **Voice notes end-to-end** — voice recordings are uploaded to Firebase Storage and served as playable audio to both coordinators (in the priority queue) and volunteers (in the need detail sheet before expressing interest)
 
 ---
 
 ## Why RahatNet is Different
 
-| System | What it does | What it lacks |
-|--------|-------------|--------------|
-| Google Crisis Response | Passive maps | No dispatch, no AI |
-| Sahayata App | Basic reporting | No AI deduplication |
-| WhatsApp groups | Informal coordination | No structure, no dedup |
-| **RahatNet** | End-to-end AI coordination | — |
+| System                 | What it does               | What it lacks          |
+| ---------------------- | -------------------------- | ---------------------- |
+| Google Crisis Response | Passive maps               | No dispatch, no AI     |
+| Sahayata App           | Basic reporting            | No AI deduplication    |
+| WhatsApp groups        | Informal coordination      | No structure, no dedup |
+| **RahatNet**           | End-to-end AI coordination | —                      |
 
 ---
 
@@ -223,12 +243,6 @@ npx firebase-tools deploy --only functions --project YOUR_PROJECT_ID
 
 ---
 
-## Team
+## Purpose
 
 Built for the **Google Solutions Challenge 2026** — addressing UN SDG 11 (Sustainable Cities) and SDG 13 (Climate Action).
-
----
-
-## License
-
-MIT License — see [LICENSE](LICENSE) for details.

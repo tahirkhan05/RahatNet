@@ -125,15 +125,15 @@ interface GeminiPhotoScoreResponse {
 // Constants
 // ---------------------------------------------------------------------------
 
-const GPS_CLUSTER_RADIUS_M   = 200;
+const GPS_CLUSTER_RADIUS_M = 200;
 /** Minimum confidence to treat a cluster as a single incident. */
-const MIN_MERGE_CONFIDENCE   = 0.6;
+const MIN_MERGE_CONFIDENCE = 0.6;
 /** Maximum number of report descriptions sent to Gemini in one call. */
 const MAX_REPORTS_PER_DEDUPE = 30;
 
 // Urgency score weights (must sum to 1.0)
 const WEIGHT_KEYWORD = 0.35;
-const WEIGHT_PHOTO   = 0.30;
+const WEIGHT_PHOTO = 0.3;
 const WEIGHT_CONTEXT = 0.35;
 
 // ---------------------------------------------------------------------------
@@ -145,7 +145,7 @@ const WEIGHT_CONTEXT = 0.35;
  * Returns metres.
  */
 function haversineDistanceM(a: GeoPoint, b: GeoPoint): number {
-  const R  = 6_371_000; // Earth radius in metres
+  const R = 6_371_000; // Earth radius in metres
   const φ1 = (a.lat * Math.PI) / 180;
   const φ2 = (b.lat * Math.PI) / 180;
   const Δφ = ((b.lat - a.lat) * Math.PI) / 180;
@@ -153,9 +153,7 @@ function haversineDistanceM(a: GeoPoint, b: GeoPoint): number {
 
   const sinΔφ = Math.sin(Δφ / 2);
   const sinΔλ = Math.sin(Δλ / 2);
-  const hav    =
-    sinΔφ * sinΔφ +
-    Math.cos(φ1) * Math.cos(φ2) * sinΔλ * sinΔλ;
+  const hav = sinΔφ * sinΔφ + Math.cos(φ1) * Math.cos(φ2) * sinΔλ * sinΔλ;
 
   return R * 2 * Math.asin(Math.sqrt(hav));
 }
@@ -173,10 +171,10 @@ function haversineDistanceM(a: GeoPoint, b: GeoPoint): number {
  * @returns Clusters sorted by report count descending (largest first).
  */
 export function clusterByGPS(reports: readonly RawReport[]): RawReportCluster[] {
-  const n       = reports.length;
+  const n = reports.length;
   const visited = new Uint8Array(n); // 0 = unvisited, 1 = visited
   const cluster = new Int32Array(n).fill(-1); // cluster index per report
-  let   clusterCount = 0;
+  let clusterCount = 0;
 
   for (let i = 0; i < n; i++) {
     if (visited[i] === 1) continue;
@@ -302,7 +300,7 @@ If isSameIncident is true, subClusters must be [[0,1,2,...all indices]].
 If isSameIncident is false, subClusters must group indices into 2+ non-overlapping, exhaustive partitions.`;
 
   const auditResult = await callGeminiWithAudit<GeminiDedupeResponse>(prompt);
-  const response    = auditResult.value;
+  const response = auditResult.value;
 
   // Validate the response structure.
   const confidence = Math.max(0, Math.min(1, response.confidence ?? 0.5));
@@ -330,7 +328,9 @@ If isSameIncident is false, subClusters must group indices into 2+ non-overlappi
     if (!Array.isArray(indexGroup) || indexGroup.length === 0) continue;
 
     const subReports = indexGroup
-      .filter((idx): idx is number => typeof idx === 'number' && idx >= 0 && idx < sampleReports.length)
+      .filter(
+        (idx): idx is number => typeof idx === 'number' && idx >= 0 && idx < sampleReports.length,
+      )
       .map((idx) => sampleReports[idx] as RawReport);
 
     if (subReports.length === 0) continue;
@@ -339,8 +339,8 @@ If isSameIncident is false, subClusters must group indices into 2+ non-overlappi
     const subCentroidLng = subReports.reduce((s, r) => s + r.location.lng, 0) / subReports.length;
 
     result.push({
-      cluster:     { reports: subReports, centroidLat: subCentroidLat, centroidLng: subCentroidLng },
-      confidence:  1 - confidence,  // sub-cluster confidence is inverse of "same" confidence
+      cluster: { reports: subReports, centroidLat: subCentroidLat, centroidLng: subCentroidLng },
+      confidence: 1 - confidence, // sub-cluster confidence is inverse of "same" confidence
       rawResponse: auditResult.rawResponse,
     });
   }
@@ -370,12 +370,16 @@ If isSameIncident is false, subClusters must group indices into 2+ non-overlappi
  * does that so it can apply FieldValue.serverTimestamp() correctly.
  */
 export async function generateCanonicalNeed(
-  cluster:    RawReportCluster,
-  needId:     string,
+  cluster: RawReportCluster,
+  needId: string,
   confidence: number,
   disasterEventId: string,
-): Promise<{ need: Omit<CanonicalNeed, 'createdAt' | 'updatedAt'>; rawResponse: string; tokensUsed: number }> {
-  const reports       = cluster.reports;
+): Promise<{
+  need: Omit<CanonicalNeed, 'createdAt' | 'updatedAt'>;
+  rawResponse: string;
+  tokensUsed: number;
+}> {
+  const reports = cluster.reports;
   const reportSummary = reports
     .map(
       (r, i) =>
@@ -393,13 +397,14 @@ export async function generateCanonicalNeed(
   for (const r of reports) {
     typeCounts.set(r.type, (typeCounts.get(r.type) ?? 0) + 1);
   }
-  const dominantType = [...typeCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? NeedType.RESCUE;
+  const dominantType =
+    [...typeCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? NeedType.RESCUE;
 
   // Aggregate context signals.
-  const totalAffected  = reports.reduce((s, r) => s + r.affectedCount, 0);
-  const maxAffected    = Math.max(...reports.map((r) => r.affectedCount));
-  const hasVulnerable  = reports.some((r) => r.hasVulnerable);
-  const reportCount    = reports.length;
+  const totalAffected = reports.reduce((s, r) => s + r.affectedCount, 0);
+  const maxAffected = Math.max(...reports.map((r) => r.affectedCount));
+  const hasVulnerable = reports.some((r) => r.hasVulnerable);
+  const reportCount = reports.length;
 
   const prompt = `You are a disaster coordination AI synthesizing ${reportCount} field reports from a flood emergency in India into a single canonical need record.
 
@@ -438,18 +443,17 @@ Respond ONLY in this JSON (no markdown, no extra text):
 }`;
 
   const auditResult = await callGeminiWithAudit<GeminiCanonicalResponse>(prompt);
-  const g           = auditResult.value;
+  const g = auditResult.value;
 
   // Validate and clamp all numeric values.
-  const rawUrgency     = Math.round(g.urgencyScore ?? 5);
+  const rawUrgency = Math.round(g.urgencyScore ?? 5);
   const clampedUrgency = Math.max(1, Math.min(10, rawUrgency));
-  const urgencyScore   = toUrgencyScore(clampedUrgency);
-  const severity       = urgencyToSeverity(urgencyScore);
+  const urgencyScore = toUrgencyScore(clampedUrgency);
+  const severity = urgencyToSeverity(urgencyScore);
 
-  const validNeedType =
-    Object.values(NeedType).includes(g.needType as NeedType)
-      ? (g.needType as NeedType)
-      : dominantType;
+  const validNeedType = Object.values(NeedType).includes(g.needType as NeedType)
+    ? (g.needType as NeedType)
+    : dominantType;
 
   // Use the centroid as the canonical location.
   const location: GeoPoint = {
@@ -458,41 +462,44 @@ Respond ONLY in this JSON (no markdown, no extra text):
   };
 
   const need: Omit<CanonicalNeed, 'createdAt' | 'updatedAt'> = {
-    id:                 needId,
-    title:              g.title || `${validNeedType} needed at ${g.locationName || 'Unknown location'} — ${g.affectedCount ?? maxAffected} people affected`,
-    description:        g.description || reportSummary.slice(0, 500),
-    type:               validNeedType,
-    status:             NeedStatus.VERIFIED,
+    id: needId,
+    title:
+      g.title ||
+      `${validNeedType} needed at ${g.locationName || 'Unknown location'} — ${g.affectedCount ?? maxAffected} people affected`,
+    description: g.description || reportSummary.slice(0, 500),
+    type: validNeedType,
+    status: NeedStatus.VERIFIED,
     severity,
     urgencyScore,
     location,
-    locationName:       g.locationName || (reports[0]?.locationName ?? ''),
-    affectedCount:      Math.max(g.affectedCount ?? 1, maxAffected),
-    hasVulnerable:      g.hasVulnerable || hasVulnerable,
-    sourceReportIds:    reports.map((r) => r.id),
+    locationName: g.locationName || (reports[0]?.locationName ?? ''),
+    affectedCount: Math.max(g.affectedCount ?? 1, maxAffected),
+    hasVulnerable: g.hasVulnerable || hasVulnerable,
+    sourceReportIds: reports.map((r) => r.id),
     reportCount,
     assignedVolunteerId: null,
-    assignedAt:         null,
-    resolvedAt:         null,
+    assignedAt: null,
+    resolvedAt: null,
     disasterEventId,
+    source: reports.some((r) => r.source === 'SURVEY') ? ('SURVEY' as const) : ('CITIZEN' as const),
     aiProcessingMeta: {
       deduplicationConfidence: confidence,
       urgencyFactors: {
-        keyword:     Math.max(1, Math.min(10, g.keywordScore ?? 5)),
-        context:     Math.max(1, Math.min(10, g.contextScore ?? 5)),
+        keyword: Math.max(1, Math.min(10, g.keywordScore ?? 5)),
+        context: Math.max(1, Math.min(10, g.contextScore ?? 5)),
         reportCount: Math.min(10, Math.log10(reportCount + 1) * 5 + 1),
-        affectedCount: Math.min(10, (totalAffected / 10) + 1),
+        affectedCount: Math.min(10, totalAffected / 10 + 1),
       },
       processingTimeMs: auditResult.durationMs,
-      modelId:          GEMINI_MODEL,
-      processedAt:      new Date().toISOString(),
+      modelId: GEMINI_MODEL,
+      processedAt: new Date().toISOString(),
     },
   };
 
   return {
     need,
-    rawResponse:  auditResult.rawResponse,
-    tokensUsed:   auditResult.usage.totalTokens,
+    rawResponse: auditResult.rawResponse,
+    tokensUsed: auditResult.usage.totalTokens,
   };
 }
 
@@ -511,16 +518,16 @@ export function scoreByKeywords(descriptions: readonly string[]): number {
 
   const keywords: Array<{ pattern: RegExp; score: number }> = [
     { pattern: /\b(drown|drowning|sinking|underwater|submerged)\b/, score: 10 },
-    { pattern: /\b(trapped|stuck|cannot escape|stranded|rescue)\b/,  score: 9  },
+    { pattern: /\b(trapped|stuck|cannot escape|stranded|rescue)\b/, score: 9 },
     { pattern: /\b(unconscious|cardiac|stroke|seizure|collapse|fire)\b/, score: 9 },
     { pattern: /\b(critical|emergency|immediate|urgent|life.threaten)\b/, score: 9 },
-    { pattern: /\b(baby|newborn|infant|child alone|alone)\b/,        score: 9  },
+    { pattern: /\b(baby|newborn|infant|child alone|alone)\b/, score: 9 },
     { pattern: /\b(elderly|disabled|pregnant|wheelchair|bedridden)\b/, score: 8 },
-    { pattern: /\b(injured|bleeding|wound|broken|fracture)\b/,       score: 8  },
-    { pattern: /\b(no food|no water|no medicine|no shelter)\b/,      score: 7  },
-    { pattern: /\b(flood|water rising|rising water|overflow)\b/,     score: 6  },
-    { pattern: /\b(damage|broken|destroyed)\b/,                       score: 5  },
-    { pattern: /\b(help needed|need help|please help)\b/,            score: 5  },
+    { pattern: /\b(injured|bleeding|wound|broken|fracture)\b/, score: 8 },
+    { pattern: /\b(no food|no water|no medicine|no shelter)\b/, score: 7 },
+    { pattern: /\b(flood|water rising|rising water|overflow)\b/, score: 6 },
+    { pattern: /\b(damage|broken|destroyed)\b/, score: 5 },
+    { pattern: /\b(help needed|need help|please help)\b/, score: 5 },
   ];
 
   let score = 3; // baseline for any submitted report
@@ -566,10 +573,10 @@ Respond ONLY in this JSON (no markdown):
 
   try {
     const auditResult = await callGeminiWithAudit<GeminiPhotoScoreResponse>(prompt, photos);
-    const score       = Math.max(1, Math.min(10, Math.round(auditResult.value.score ?? 5)));
+    const score = Math.max(1, Math.min(10, Math.round(auditResult.value.score ?? 5)));
     return {
       score,
-      reason:     auditResult.value.reason ?? '',
+      reason: auditResult.value.reason ?? '',
       tokensUsed: auditResult.usage.totalTokens,
     };
   } catch {
@@ -587,9 +594,9 @@ Respond ONLY in this JSON (no markdown):
  *  - Report count signal      (log scale — more reports = more corroboration)
  */
 export function scoreByContext(params: {
-  affectedCount:  number;
-  hasVulnerable:  boolean;
-  reportCount:    number;
+  affectedCount: number;
+  hasVulnerable: boolean;
+  reportCount: number;
 }): number {
   const { affectedCount, hasVulnerable, reportCount } = params;
 
@@ -615,36 +622,35 @@ export function scoreByContext(params: {
  * @returns UrgencyScore (branded number in [1, 10]).
  */
 export async function scoreUrgency(
-  descriptions:    readonly string[],
-  photoBase64s:    readonly string[],
-  affectedCount:   number,
-  hasVulnerable:   boolean,
-  reportCount:     number,
+  descriptions: readonly string[],
+  photoBase64s: readonly string[],
+  affectedCount: number,
+  hasVulnerable: boolean,
+  reportCount: number,
 ): Promise<{
-  urgencyScore:   UrgencyScore;
-  keywordScore:   number;
-  photoScore:     number;
-  contextScore:   number;
-  photoReason:    string;
-  totalTokens:    number;
+  urgencyScore: UrgencyScore;
+  keywordScore: number;
+  photoScore: number;
+  contextScore: number;
+  photoReason: string;
+  totalTokens: number;
 }> {
   const keywordScore = scoreByKeywords(descriptions);
   const contextScore = scoreByContext({ affectedCount, hasVulnerable, reportCount });
-  const photoResult  = await scoreByPhotos(photoBase64s);
+  const photoResult = await scoreByPhotos(photoBase64s);
 
-  const raw = (
+  const raw =
     keywordScore * WEIGHT_KEYWORD +
     photoResult.score * WEIGHT_PHOTO +
-    contextScore * WEIGHT_CONTEXT
-  );
+    contextScore * WEIGHT_CONTEXT;
 
-  const clamped     = Math.round(Math.max(1, Math.min(10, raw)));
+  const clamped = Math.round(Math.max(1, Math.min(10, raw)));
   const urgencyScore = toUrgencyScore(clamped);
 
   return {
     urgencyScore,
     keywordScore,
-    photoScore:  photoResult.score,
+    photoScore: photoResult.score,
     contextScore,
     photoReason: photoResult.reason,
     totalTokens: photoResult.tokensUsed,

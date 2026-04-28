@@ -22,23 +22,23 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { AlertCircle, RefreshCw, Clock, Wifi, ArrowLeft } from 'lucide-react';
-import {
-  DisasterStatus, DisasterSeverity,
-  type CanonicalNeed,
-} from '@rahatnet/types';
+import { DisasterStatus, DisasterSeverity, type CanonicalNeed } from '@rahatnet/types';
 import { useWarRoom } from '@/hooks/useWarRoom';
-import { DisasterAlert }      from './DisasterAlert';
-import { ImpactMetrics }      from './ImpactMetrics';
-import { ImpactAnalytics }    from './ImpactAnalytics';
-import { NeedQueue }          from './NeedQueue';
-import { WarRoomMap }         from './WarRoomMap';
+import { DisasterAlert } from './DisasterAlert';
+import { ImpactMetrics } from './ImpactMetrics';
+import { ImpactAnalytics } from './ImpactAnalytics';
+import { NeedQueue } from './NeedQueue';
+import { WarRoomMap } from './WarRoomMap';
 import { AssignVolunteerModal } from './AssignVolunteerModal';
 
 // ---------------------------------------------------------------------------
 // Map Error Boundary
 // ---------------------------------------------------------------------------
 
-interface ErrorBoundaryState { hasError: boolean; error: Error | null }
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
 
 class MapErrorBoundary extends React.Component<{ children: React.ReactNode }, ErrorBoundaryState> {
   constructor(props: { children: React.ReactNode }) {
@@ -51,16 +51,16 @@ class MapErrorBoundary extends React.Component<{ children: React.ReactNode }, Er
   override render() {
     if (this.state.hasError) {
       return (
-        <div className="flex h-full flex-col items-center justify-center gap-3 bg-secondary p-6 text-center">
-          <AlertCircle className="h-10 w-10 text-destructive" aria-hidden="true" />
-          <p className="font-semibold text-foreground">Map failed to load</p>
-          <p className="text-sm text-muted-foreground">
+        <div className="bg-secondary flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
+          <AlertCircle className="text-destructive h-10 w-10" aria-hidden="true" />
+          <p className="text-foreground font-semibold">Map failed to load</p>
+          <p className="text-muted-foreground text-sm">
             {this.state.error?.message ?? 'An unexpected error occurred'}
           </p>
           <button
             type="button"
             onClick={() => this.setState({ hasError: false, error: null })}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring rounded-lg px-4 py-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2"
           >
             Retry
           </button>
@@ -76,26 +76,32 @@ class MapErrorBoundary extends React.Component<{ children: React.ReactNode }, Er
 // ---------------------------------------------------------------------------
 
 function WarRoomHeader({
-  disasterName, status, severity, lastUpdated, isOnline,
+  disasterName,
+  status,
+  severity,
+  lastUpdated,
+  isOnline,
 }: {
   disasterName: string;
-  status:       DisasterStatus | null;
-  severity:     DisasterSeverity | null;
-  lastUpdated:  Date;
-  isOnline:     boolean;
+  status: DisasterStatus | null;
+  severity: DisasterSeverity | null;
+  lastUpdated: Date;
+  isOnline: boolean;
 }) {
   const severityColor: Record<DisasterSeverity, string> = {
-    [DisasterSeverity.LOW]:          'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    [DisasterSeverity.MODERATE]:     'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
-    [DisasterSeverity.SEVERE]:       'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+    [DisasterSeverity.LOW]: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+    [DisasterSeverity.MODERATE]:
+      'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
+    [DisasterSeverity.SEVERE]:
+      'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
     [DisasterSeverity.CATASTROPHIC]: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
   };
 
   const statusColor: Record<DisasterStatus, string> = {
-    [DisasterStatus.MONITORING]:    'bg-blue-100 text-blue-800 dark:bg-blue-900',
-    [DisasterStatus.ACTIVE]:        'bg-green-100 text-green-800 dark:bg-green-900',
-    [DisasterStatus.WINDING_DOWN]:  'bg-amber-100 text-amber-800 dark:bg-amber-900',
-    [DisasterStatus.RESOLVED]:      'bg-secondary text-muted-foreground',
+    [DisasterStatus.MONITORING]: 'bg-blue-100 text-blue-800 dark:bg-blue-900',
+    [DisasterStatus.ACTIVE]: 'bg-green-100 text-green-800 dark:bg-green-900',
+    [DisasterStatus.WINDING_DOWN]: 'bg-amber-100 text-amber-800 dark:bg-amber-900',
+    [DisasterStatus.RESOLVED]: 'bg-secondary text-muted-foreground',
   };
 
   const relTime = (d: Date) => {
@@ -106,39 +112,47 @@ function WarRoomHeader({
   };
 
   return (
-    <header className="flex items-center justify-between border-b border-border bg-card px-4 py-3">
-      <div className="flex items-center gap-3 min-w-0">
-        <Link href="/coordinator"
-          className="shrink-0 flex items-center gap-1 rounded-lg p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground">
+    <header className="border-border bg-card flex items-center justify-between border-b px-4 py-3">
+      <div className="flex min-w-0 items-center gap-3">
+        <Link
+          href="/coordinator"
+          className="text-muted-foreground hover:bg-accent hover:text-foreground flex shrink-0 items-center gap-1 rounded-lg p-1.5"
+        >
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div className="min-w-0">
-          <h1 className="truncate text-base font-semibold text-foreground">{disasterName}</h1>
+          <h1 className="text-foreground truncate text-base font-semibold">{disasterName}</h1>
         </div>
         {status !== null && (
-          <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${statusColor[status]}`}>
+          <span
+            className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${statusColor[status]}`}
+          >
             {status}
           </span>
         )}
         {severity !== null && (
-          <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${severityColor[severity]}`}>
+          <span
+            className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${severityColor[severity]}`}
+          >
             {severity}
           </span>
         )}
       </div>
 
-      <div className="flex items-center gap-4 shrink-0 text-xs text-muted-foreground">
+      <div className="text-muted-foreground flex shrink-0 items-center gap-4 text-xs">
         <span className="flex items-center gap-1">
           <Clock className="h-3.5 w-3.5" aria-hidden="true" />
           Updated {relTime(lastUpdated)}
         </span>
-        <span className={`flex items-center gap-1 ${isOnline ? 'text-success' : 'text-destructive'}`}>
+        <span
+          className={`flex items-center gap-1 ${isOnline ? 'text-success' : 'text-destructive'}`}
+        >
           <Wifi className="h-3.5 w-3.5" aria-hidden="true" />
           {isOnline ? 'Live' : 'Offline'}
         </span>
         <a
           href="/coordinator/needs"
-          className="text-xs text-primary hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
+          className="text-primary focus-visible:ring-ring rounded text-xs hover:underline focus-visible:outline-none focus-visible:ring-1"
         >
           Full queue →
         </a>
@@ -157,23 +171,56 @@ interface WarRoomDashboardProps {
 
 export function WarRoomDashboard({ disasterEventId }: WarRoomDashboardProps) {
   const {
-    needs, volunteerLocations, disasterAlerts,
-    activeDisaster, stats, isLoading, error, refresh,
+    needs,
+    surveyReports,
+    volunteerLocations,
+    disasterAlerts,
+    activeDisaster,
+    stats,
+    isLoading,
+    error,
+    refresh,
   } = useWarRoom(disasterEventId);
 
-  const [selectedNeed, setSelectedNeed]   = React.useState<CanonicalNeed | null>(null);
-  const [assignTarget, setAssignTarget]   = React.useState<CanonicalNeed | null>(null);
-  const [lastUpdated]                     = React.useState(new Date());
-  const [isOnline,     setIsOnline]       = React.useState(true);
+  const [selectedNeed, setSelectedNeed] = React.useState<CanonicalNeed | null>(null);
+  const [assignTarget, setAssignTarget] = React.useState<CanonicalNeed | null>(null);
+  const [lastUpdated] = React.useState(new Date());
+  const [isOnline, setIsOnline] = React.useState(true);
+  const [volunteerNames, setVolunteerNames] = React.useState<Record<string, string>>({});
+
+  // Fetch display names for volunteers visible on the map.
+  React.useEffect(() => {
+    const uids = Object.keys(volunteerLocations);
+    if (uids.length === 0) return;
+
+    void (async () => {
+      try {
+        const { getFirestore, collection, getDocs, query, where } =
+          await import('firebase/firestore');
+        const { firebaseApp } = await import('@/lib/firebase/client');
+        const db = getFirestore(firebaseApp);
+        const q = query(collection(db, 'users'), where('__name__', 'in', uids.slice(0, 10)));
+        const snap = await getDocs(q);
+        const names: Record<string, string> = {};
+        snap.forEach((doc) => {
+          const data = doc.data() as { displayName?: string };
+          names[doc.id] = data.displayName ?? `Volunteer ${doc.id.slice(0, 6)}`;
+        });
+        setVolunteerNames((prev) => ({ ...prev, ...names }));
+      } catch {
+        // Non-fatal — map falls back to truncated UID labels
+      }
+    })();
+  }, [volunteerLocations]);
 
   // Track online status.
   React.useEffect(() => {
-    const onOnline  = () => setIsOnline(true);
+    const onOnline = () => setIsOnline(true);
     const onOffline = () => setIsOnline(false);
-    window.addEventListener('online',  onOnline);
+    window.addEventListener('online', onOnline);
     window.addEventListener('offline', onOffline);
     return () => {
-      window.removeEventListener('online',  onOnline);
+      window.removeEventListener('online', onOnline);
       window.removeEventListener('offline', onOffline);
     };
   }, []);
@@ -217,14 +264,11 @@ export function WarRoomDashboard({ disasterEventId }: WarRoomDashboardProps) {
 
   // ── Optimistic assignment update ──────────────────────────────────────────
 
-  const handleAssigned = React.useCallback(
-    (_needId: string, _volunteerId: string) => {
-      // useWarRoom's Firestore subscription will pick up the real update within
-      // ~200 ms.  We just close the modal here.
-      setAssignTarget(null);
-    },
-    [],
-  );
+  const handleAssigned = React.useCallback((_needId: string, _volunteerId: string) => {
+    // useWarRoom's Firestore subscription will pick up the real update within
+    // ~200 ms.  We just close the modal here.
+    setAssignTarget(null);
+  }, []);
 
   const handleMarkDuplicate = React.useCallback((need: CanonicalNeed) => {
     // Fire-and-forget: coordinator marks the need as a duplicate.
@@ -239,16 +283,16 @@ export function WarRoomDashboard({ disasterEventId }: WarRoomDashboardProps) {
 
   if (error !== null && !isLoading) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center gap-4 text-center p-6">
-        <AlertCircle className="h-12 w-12 text-destructive" aria-hidden="true" />
+      <div className="flex h-screen flex-col items-center justify-center gap-4 p-6 text-center">
+        <AlertCircle className="text-destructive h-12 w-12" aria-hidden="true" />
         <div>
-          <p className="text-lg font-semibold text-foreground">Failed to load war room</p>
-          <p className="mt-1 text-sm text-muted-foreground">{error}</p>
+          <p className="text-foreground text-lg font-semibold">Failed to load war room</p>
+          <p className="text-muted-foreground mt-1 text-sm">{error}</p>
         </div>
         <button
           type="button"
           onClick={refresh}
-          className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2"
         >
           <RefreshCw className="h-4 w-4" aria-hidden="true" />
           Try again
@@ -258,16 +302,12 @@ export function WarRoomDashboard({ disasterEventId }: WarRoomDashboardProps) {
   }
 
   const disasterName = activeDisaster?.name ?? 'Active Disaster';
-  const boundingBox  = activeDisaster?.boundingBox ?? null;
+  const boundingBox = activeDisaster?.boundingBox ?? null;
 
   return (
     <div className="rn-war-room">
       {/* Disaster alert banner (above header) */}
-      <DisasterAlert
-        needs={needs}
-        disasterAlerts={disasterAlerts}
-        disasterName={disasterName}
-      />
+      <DisasterAlert needs={needs} disasterAlerts={disasterAlerts} disasterName={disasterName} />
 
       {/* Header */}
       <WarRoomHeader
@@ -281,10 +321,7 @@ export function WarRoomDashboard({ disasterEventId }: WarRoomDashboardProps) {
       {/* Three-column body — fills the 1fr grid row */}
       <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* Left — Priority Queue */}
-        <aside
-          className="w-72 shrink-0 border-r border-border"
-          aria-label="Priority queue"
-        >
+        <aside className="border-border w-72 shrink-0 border-r" aria-label="Priority queue">
           <NeedQueue
             needs={needs}
             isLoading={isLoading}
@@ -296,11 +333,13 @@ export function WarRoomDashboard({ disasterEventId }: WarRoomDashboardProps) {
         </aside>
 
         {/* Centre — Live Map */}
-        <main className="flex-1 min-w-0" aria-label="Live disaster map">
+        <main className="min-w-0 flex-1" aria-label="Live disaster map">
           <MapErrorBoundary>
             <WarRoomMap
               needs={needs}
+              surveyReports={surveyReports}
               volunteerLocations={volunteerLocations}
+              volunteerNames={volunteerNames}
               boundingBox={boundingBox}
               selectedNeed={selectedNeed}
               onNeedClick={(need) => {
@@ -312,27 +351,36 @@ export function WarRoomDashboard({ disasterEventId }: WarRoomDashboardProps) {
 
         {/* Right — Stats + Analytics (double-width, side-by-side) */}
         <aside
-          className="w-[34rem] shrink-0 border-l border-border flex divide-x divide-border overflow-hidden"
+          className="border-border divide-border flex w-[34rem] shrink-0 divide-x overflow-hidden border-l"
           aria-label="Impact metrics and analytics"
         >
           {/* Left half — Key metrics + shortcuts */}
-          <div className="w-56 shrink-0 overflow-y-auto p-3 rn-scroll-panel">
+          <div className="rn-scroll-panel w-56 shrink-0 overflow-y-auto p-3">
             <ImpactMetrics stats={stats} isLoading={isLoading} />
-            <div className="mt-4 rounded-lg bg-secondary px-3 py-2">
-              <p className="text-[11px] font-medium text-muted-foreground">Shortcuts</p>
-              <div className="mt-1 space-y-0.5 text-[10px] text-muted-foreground">
-                <p><kbd className="rounded bg-background px-1 py-0.5 font-mono">A</kbd> Assign selected</p>
-                <p><kbd className="rounded bg-background px-1 py-0.5 font-mono">F</kbd> Focus search</p>
-                <p><kbd className="rounded bg-background px-1 py-0.5 font-mono">Esc</kbd> Deselect</p>
+            <div className="bg-secondary mt-4 rounded-lg px-3 py-2">
+              <p className="text-muted-foreground text-[11px] font-medium">Shortcuts</p>
+              <div className="text-muted-foreground mt-1 space-y-0.5 text-[10px]">
+                <p>
+                  <kbd className="bg-background rounded px-1 py-0.5 font-mono">A</kbd> Assign
+                  selected
+                </p>
+                <p>
+                  <kbd className="bg-background rounded px-1 py-0.5 font-mono">F</kbd> Focus search
+                </p>
+                <p>
+                  <kbd className="bg-background rounded px-1 py-0.5 font-mono">Esc</kbd> Deselect
+                </p>
               </div>
             </div>
           </div>
 
           {/* Right half — Live analytics charts */}
-          <div className="flex-1 min-w-0 overflow-y-auto p-3 rn-scroll-panel">
+          <div className="rn-scroll-panel min-w-0 flex-1 overflow-y-auto p-3">
             <ImpactAnalytics
               disasterEventId={disasterEventId}
-              onTypeFilter={(type) => { void type; }}
+              onTypeFilter={(type) => {
+                void type;
+              }}
             />
           </div>
         </aside>

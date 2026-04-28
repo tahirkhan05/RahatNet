@@ -39,8 +39,11 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import {
-  NeedStatus, AssignmentStatus, COLLECTIONS,
-  type CanonicalNeed, type VolunteerProfile,
+  NeedStatus,
+  AssignmentStatus,
+  COLLECTIONS,
+  type CanonicalNeed,
+  type VolunteerProfile,
 } from '@rahatnet/types';
 import type { ApiResponse } from '@rahatnet/types';
 import { createServerLogger, toLogError } from '@/lib/api/serverLogger';
@@ -52,8 +55,8 @@ import type { VolunteerMatch } from '@/lib/ai/dispatch';
 // Module singletons
 // ---------------------------------------------------------------------------
 
-const logger     = createServerLogger('dispatch');
-const ipLimiter  = createRateLimiter({ limit: 20, windowMs: 60_000, prefix: 'dispatch-ip' });
+const logger = createServerLogger('dispatch');
+const ipLimiter = createRateLimiter({ limit: 20, windowMs: 60_000, prefix: 'dispatch-ip' });
 
 const SESSION_COOKIE_NAME =
   (process.env['SESSION_COOKIE_NAME'] as string | undefined) ?? 'rahatnet_session';
@@ -85,19 +88,13 @@ function recordNeedDispatch(needId: string): void {
 // Auto-reassign timer
 // ---------------------------------------------------------------------------
 
-/**
- * Map from assignmentId → candidates list (positions 1–2 are fallbacks).
- * The 60-second timeout fires and uses position 1 (index 1) if the volunteer
- * at position 0 didn't accept.
- */
-const pendingTimers = new Map<string, ReturnType<typeof setTimeout>>();
-const pendingCandidates = new Map<string, VolunteerMatch[]>();
+import { pendingTimers, pendingCandidates } from './autoReassign';
 
 function scheduleAutoReassign(
   assignmentId: string,
-  needId:       string,
-  candidates:   VolunteerMatch[],
-  requestId:    string,
+  needId: string,
+  candidates: VolunteerMatch[],
+  requestId: string,
 ): void {
   if (pendingTimers.has(assignmentId)) return; // Already scheduled.
 
@@ -114,8 +111,8 @@ function scheduleAutoReassign(
 
 async function triggerAutoReassign(
   assignmentId: string,
-  needId:       string,
-  requestId:    string,
+  needId: string,
+  requestId: string,
 ): Promise<void> {
   const candidates = pendingCandidates.get(assignmentId);
   pendingTimers.delete(assignmentId);
@@ -125,10 +122,13 @@ async function triggerAutoReassign(
 
   try {
     const { adminFirestore } = await import('@/lib/firebase/admin');
-    const { FieldValue }     = await import('firebase-admin/firestore');
+    const { FieldValue } = await import('firebase-admin/firestore');
 
     // Check if the assignment was already accepted (volunteer responded in time).
-    const assignSnap = await adminFirestore.collection(COLLECTIONS.ASSIGNMENTS).doc(assignmentId).get();
+    const assignSnap = await adminFirestore
+      .collection(COLLECTIONS.ASSIGNMENTS)
+      .doc(assignmentId)
+      .get();
     if (!assignSnap.exists) return;
 
     const assignment = assignSnap.data() as { status: string };
@@ -137,37 +137,52 @@ async function triggerAutoReassign(
       assignment.status === AssignmentStatus.IN_PROGRESS ||
       assignment.status === AssignmentStatus.COMPLETED
     ) {
-      logger.info('autoReassign', 'volunteer accepted in time — skipping reassign', { assignmentId }, ctx);
+      logger.info(
+        'autoReassign',
+        'volunteer accepted in time — skipping reassign',
+        { assignmentId },
+        ctx,
+      );
       return;
     }
 
     // Mark current assignment as DECLINED with TIMEOUT reason.
     await adminFirestore.collection(COLLECTIONS.ASSIGNMENTS).doc(assignmentId).update({
-      status:         AssignmentStatus.DECLINED,
+      status: AssignmentStatus.DECLINED,
       declinedReason: 'TIMEOUT',
-      updatedAt:      FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     });
 
-    logger.info('autoReassign', 'assignment timed out — auto-declining', { assignmentId, needId }, ctx);
+    logger.info(
+      'autoReassign',
+      'assignment timed out — auto-declining',
+      { assignmentId, needId },
+      ctx,
+    );
 
     // If there is a second candidate, dispatch to them.
     const nextCandidate = candidates?.[1];
     if (nextCandidate) {
-      logger.info('autoReassign', 'dispatching to fallback candidate', {
-        volunteerId: nextCandidate.uid,
-        score:       nextCandidate.scores.compositeScore,
-      }, ctx);
+      logger.info(
+        'autoReassign',
+        'dispatching to fallback candidate',
+        {
+          volunteerId: nextCandidate.uid,
+          score: nextCandidate.scores.compositeScore,
+        },
+        ctx,
+      );
       await performDispatch({
         needId,
-        volunteerId:  nextCandidate.uid,
+        volunteerId: nextCandidate.uid,
         coordinatorId: 'SYSTEM_AUTO',
-        message:       `Please proceed to ${(await adminFirestore.collection(COLLECTIONS.NEEDS).doc(needId).get()).data()?.locationName ?? 'the location'}.`,
-        matchScore:    nextCandidate.scores.compositeScore,
-        matchFactors:  {
-          distanceScore:          nextCandidate.scores.distanceScore,
-          skillScore:             nextCandidate.scores.skillScore,
-          languageScore:          nextCandidate.scores.languageScore,
-          historyScore:           nextCandidate.scores.historyScore,
+        message: `Please proceed to ${(await adminFirestore.collection(COLLECTIONS.NEEDS).doc(needId).get()).data()?.locationName ?? 'the location'}.`,
+        matchScore: nextCandidate.scores.compositeScore,
+        matchFactors: {
+          distanceScore: nextCandidate.scores.distanceScore,
+          skillScore: nextCandidate.scores.skillScore,
+          languageScore: nextCandidate.scores.languageScore,
+          historyScore: nextCandidate.scores.historyScore,
           estimatedDrivingMinutes: nextCandidate.scores.estimatedDrivingMinutes,
         },
         allCandidates: candidates.slice(1), // shift the list so next timeout goes to candidate #3
@@ -176,24 +191,27 @@ async function triggerAutoReassign(
     } else {
       // No more candidates — revert the need to VERIFIED.
       await adminFirestore.collection(COLLECTIONS.NEEDS).doc(needId).update({
-        status:              NeedStatus.VERIFIED,
+        status: NeedStatus.VERIFIED,
         assignedVolunteerId: null,
-        assignedAt:          null,
-        updatedAt:           FieldValue.serverTimestamp(),
+        assignedAt: null,
+        updatedAt: FieldValue.serverTimestamp(),
       });
-      logger.warn('autoReassign', 'no more candidates — need reverted to VERIFIED', undefined, { needId }, ctx);
+      logger.warn(
+        'autoReassign',
+        'no more candidates — need reverted to VERIFIED',
+        undefined,
+        { needId },
+        ctx,
+      );
     }
   } catch (err) {
-    logger.error('autoReassign', 'auto-reassign failed', toLogError(err), { assignmentId, needId }, ctx);
-  }
-}
-
-export function cancelAutoReassign(assignmentId: string): void {
-  const timerId = pendingTimers.get(assignmentId);
-  if (timerId !== undefined) {
-    clearTimeout(timerId);
-    pendingTimers.delete(assignmentId);
-    pendingCandidates.delete(assignmentId);
+    logger.error(
+      'autoReassign',
+      'auto-reassign failed',
+      toLogError(err),
+      { assignmentId, needId },
+      ctx,
+    );
   }
 }
 
@@ -202,44 +220,50 @@ export function cancelAutoReassign(assignmentId: string): void {
 // ---------------------------------------------------------------------------
 
 interface DispatchParams {
-  needId:        string;
-  volunteerId:   string;
+  needId: string;
+  volunteerId: string;
   coordinatorId: string;
-  message:       string;
-  matchScore:    number;
-  matchFactors:  {
-    distanceScore:            number;
-    skillScore:               number;
-    languageScore:            number;
-    historyScore:             number;
-    estimatedDrivingMinutes:  number;
+  message: string;
+  matchScore: number;
+  matchFactors: {
+    distanceScore: number;
+    skillScore: number;
+    languageScore: number;
+    historyScore: number;
+    estimatedDrivingMinutes: number;
   };
   allCandidates: VolunteerMatch[];
-  requestId:     string;
+  requestId: string;
 }
 
 interface DispatchResult {
-  assignmentId:             string;
-  volunteerId:              string;
-  volunteerName:            string;
-  estimatedArrivalMinutes:  number;
+  assignmentId: string;
+  volunteerId: string;
+  volunteerName: string;
+  estimatedArrivalMinutes: number;
 }
 
 async function performDispatch(params: DispatchParams): Promise<DispatchResult> {
   const {
-    needId, volunteerId, coordinatorId, message,
-    matchScore, matchFactors, allCandidates, requestId,
+    needId,
+    volunteerId,
+    coordinatorId,
+    message,
+    matchScore,
+    matchFactors,
+    allCandidates,
+    requestId,
   } = params;
 
   const ctx = { requestId, userId: coordinatorId };
   const { adminFirestore } = await import('@/lib/firebase/admin');
-  const { FieldValue }     = await import('firebase-admin/firestore');
+  const { FieldValue } = await import('firebase-admin/firestore');
 
   const assignmentId = crypto.randomUUID();
 
   // ── Atomic Firestore transaction: create assignment + update need ─────────
   await adminFirestore.runTransaction(async (tx) => {
-    const needRef  = adminFirestore.collection(COLLECTIONS.NEEDS).doc(needId);
+    const needRef = adminFirestore.collection(COLLECTIONS.NEEDS).doc(needId);
     const needSnap = await tx.get(needRef);
 
     if (!needSnap.exists) throw new Error(`Need ${needId} not found`);
@@ -253,91 +277,97 @@ async function performDispatch(params: DispatchParams): Promise<DispatchResult> 
     // Create the assignment document.
     const assignRef = adminFirestore.collection(COLLECTIONS.ASSIGNMENTS).doc(assignmentId);
     tx.set(assignRef, {
-      id:            assignmentId,
+      id: assignmentId,
       needId,
       volunteerId,
       coordinatorId,
-      status:        AssignmentStatus.CREATED,
+      status: AssignmentStatus.CREATED,
       matchScore,
       matchFactors,
       message,
-      notification:  null,
-      createdAt:     FieldValue.serverTimestamp(),
-      acceptedAt:    null,
-      arrivedAt:     null,
-      completedAt:   null,
+      notification: null,
+      createdAt: FieldValue.serverTimestamp(),
+      acceptedAt: null,
+      arrivedAt: null,
+      completedAt: null,
       declinedReason: null,
-      declinedNote:  null,
-      metrics:       null,
+      declinedNote: null,
+      metrics: null,
     });
 
     // Update need status.
     tx.update(needRef, {
-      status:              NeedStatus.ASSIGNED,
+      status: NeedStatus.ASSIGNED,
       assignedVolunteerId: volunteerId,
-      assignedAt:          FieldValue.serverTimestamp(),
-      updatedAt:           FieldValue.serverTimestamp(),
+      assignedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     });
   });
 
   logger.info('performDispatch', 'assignment created', { assignmentId, volunteerId, needId }, ctx);
 
   // ── FCM push notification ─────────────────────────────────────────────────
-  let volunteerName  = volunteerId;
+  let volunteerName = volunteerId;
   let volunteerToken: string | null = null;
 
   try {
-    const profileSnap = await adminFirestore
-      .collection(COLLECTIONS.USERS)
-      .doc(volunteerId)
-      .get();
+    const profileSnap = await adminFirestore.collection(COLLECTIONS.USERS).doc(volunteerId).get();
 
     if (profileSnap.exists) {
       const profile = profileSnap.data() as VolunteerProfile;
-      volunteerName  = profile.displayName;
+      volunteerName = profile.displayName;
       volunteerToken = profile.fcmToken ?? null;
     }
   } catch (err) {
-    logger.warn('performDispatch', 'could not fetch volunteer profile for FCM', toLogError(err), undefined, ctx);
+    logger.warn(
+      'performDispatch',
+      'could not fetch volunteer profile for FCM',
+      toLogError(err),
+      undefined,
+      ctx,
+    );
   }
 
   if (volunteerToken) {
     try {
       const { adminMessaging } = await import('@/lib/firebase/admin');
       const needSnap = await adminFirestore.collection(COLLECTIONS.NEEDS).doc(needId).get();
-      const need     = needSnap.data() as CanonicalNeed;
+      const need = needSnap.data() as CanonicalNeed;
 
       await adminMessaging.send({
         token: volunteerToken,
         notification: {
           title: `New task: ${need.type}`,
-          body:  `${need.locationName} — ${need.affectedCount} people`,
+          body: `${need.locationName} — ${need.affectedCount} people`,
         },
         data: {
-          type:         'TASK_ASSIGNED',
+          type: 'TASK_ASSIGNED',
           assignmentId,
           needId,
-          needType:     need.type,
+          needType: need.type,
           locationName: need.locationName,
           message,
-          clickUrl:     `/volunteer/tasks?assignment=${assignmentId}`,
+          clickUrl: `/volunteer/tasks?assignment=${assignmentId}`,
         },
         android: { priority: 'high', notification: { channelId: 'tasks' } },
-        apns:    { payload: { aps: { sound: 'default', badge: 1 } } },
+        apns: { payload: { aps: { sound: 'default', badge: 1 } } },
       });
 
       // Mark as NOTIFIED.
-      await adminFirestore.collection(COLLECTIONS.ASSIGNMENTS).doc(assignmentId).update({
-        status:       AssignmentStatus.NOTIFIED,
-        notification: {
-          fcmToken:     volunteerToken,
-          sentAt:       new Date().toISOString(),
-          delivered:    true,
-          messageId:    null,
-          errorMessage: null,
-        },
-        updatedAt: FieldValue.serverTimestamp(),
-      });
+      await adminFirestore
+        .collection(COLLECTIONS.ASSIGNMENTS)
+        .doc(assignmentId)
+        .update({
+          status: AssignmentStatus.NOTIFIED,
+          notification: {
+            fcmToken: volunteerToken,
+            sentAt: new Date().toISOString(),
+            delivered: true,
+            messageId: null,
+            errorMessage: null,
+          },
+          updatedAt: FieldValue.serverTimestamp(),
+        });
 
       logger.info('performDispatch', 'FCM notification sent', { assignmentId, volunteerId }, ctx);
     } catch (err) {
@@ -351,7 +381,7 @@ async function performDispatch(params: DispatchParams): Promise<DispatchResult> 
     const { getDatabase } = await import('firebase-admin/database');
     const db = getDatabase();
     await db.ref(`liveNeedsFeed/${needId}`).update({
-      status:    NeedStatus.ASSIGNED,
+      status: NeedStatus.ASSIGNED,
       updatedAt: Date.now(),
     });
   } catch (err) {
@@ -360,8 +390,14 @@ async function performDispatch(params: DispatchParams): Promise<DispatchResult> 
 
   // ── BigQuery audit log ────────────────────────────────────────────────────
   void logDispatchToBigQuery({
-    assignmentId, needId, volunteerId, coordinatorId,
-    matchScore, matchFactors, allCandidates, requestId,
+    assignmentId,
+    needId,
+    volunteerId,
+    coordinatorId,
+    matchScore,
+    matchFactors,
+    allCandidates,
+    requestId,
   });
 
   // ── Dispatch audit log to Firestore ──────────────────────────────────────
@@ -377,7 +413,7 @@ async function performDispatch(params: DispatchParams): Promise<DispatchResult> 
         matchFactors,
         candidateCount: allCandidates.length,
         allCandidateScores: allCandidates.map((c) => ({
-          uid:   c.uid,
+          uid: c.uid,
           score: c.scores.compositeScore,
         })),
         dispatchedAt: FV.serverTimestamp(),
@@ -403,14 +439,14 @@ async function performDispatch(params: DispatchParams): Promise<DispatchResult> 
 // ---------------------------------------------------------------------------
 
 async function logDispatchToBigQuery(params: {
-  assignmentId:   string;
-  needId:         string;
-  volunteerId:    string;
-  coordinatorId:  string;
-  matchScore:     number;
-  matchFactors:   Record<string, number>;
-  allCandidates:  VolunteerMatch[];
-  requestId:      string;
+  assignmentId: string;
+  needId: string;
+  volunteerId: string;
+  coordinatorId: string;
+  matchScore: number;
+  matchFactors: Record<string, number>;
+  allCandidates: VolunteerMatch[];
+  requestId: string;
 }): Promise<void> {
   const projectId = process.env['GOOGLE_CLOUD_PROJECT_ID'];
   const datasetId = process.env['BIGQUERY_DATASET_ID'] ?? 'rahatnet_analytics';
@@ -423,17 +459,17 @@ async function logDispatchToBigQuery(params: {
       .table('dispatch_events')
       .insert([
         {
-          assignment_id:    params.assignmentId,
-          need_id:          params.needId,
-          volunteer_id:     params.volunteerId,
-          coordinator_id:   params.coordinatorId,
-          match_score:      params.matchScore,
-          distance_score:   params.matchFactors['distanceScore']  ?? 0,
-          skill_score:      params.matchFactors['skillScore']     ?? 0,
-          language_score:   params.matchFactors['languageScore']  ?? 0,
-          history_score:    params.matchFactors['historyScore']   ?? 0,
-          candidate_count:  params.allCandidates.length,
-          dispatched_at:    new Date().toISOString(),
+          assignment_id: params.assignmentId,
+          need_id: params.needId,
+          volunteer_id: params.volunteerId,
+          coordinator_id: params.coordinatorId,
+          match_score: params.matchScore,
+          distance_score: params.matchFactors['distanceScore'] ?? 0,
+          skill_score: params.matchFactors['skillScore'] ?? 0,
+          language_score: params.matchFactors['languageScore'] ?? 0,
+          history_score: params.matchFactors['historyScore'] ?? 0,
+          candidate_count: params.allCandidates.length,
+          dispatched_at: new Date().toISOString(),
         },
       ]);
   } catch {
@@ -445,44 +481,51 @@ async function logDispatchToBigQuery(params: {
 // Validation schema
 // ---------------------------------------------------------------------------
 
-const postBodySchema = z.object({
-  needId:       z.string().min(1),
-  volunteerId:  z.string().optional(),
-  autoSelect:   z.boolean().default(false),
-  message:      z.string().max(500).optional(),
-}).refine(
-  (data) => data.autoSelect || (data.volunteerId !== undefined && data.volunteerId.length > 0),
-  { message: 'Either autoSelect must be true or volunteerId must be provided.' },
-);
+const postBodySchema = z
+  .object({
+    needId: z.string().min(1),
+    volunteerId: z.string().optional(),
+    autoSelect: z.boolean().default(false),
+    message: z.string().max(500).optional(),
+  })
+  .refine(
+    (data) => data.autoSelect || (data.volunteerId !== undefined && data.volunteerId.length > 0),
+    { message: 'Either autoSelect must be true or volunteerId must be provided.' },
+  );
 
 // ---------------------------------------------------------------------------
 // POST handler
 // ---------------------------------------------------------------------------
 
 interface PostDispatchResponse {
-  assignmentId:             string;
-  volunteerId:              string;
-  volunteerName:            string;
-  estimatedArrivalMinutes:  number;
+  assignmentId: string;
+  volunteerId: string;
+  volunteerName: string;
+  estimatedArrivalMinutes: number;
 }
 
 export async function POST(
   request: NextRequest,
 ): Promise<NextResponse<ApiResponse<PostDispatchResponse>>> {
   const requestId = request.headers.get('x-request-id') ?? crypto.randomUUID();
-  const ip        = getClientIp(request);
-  const ctx       = { requestId, remoteIp: ip };
+  const ip = getClientIp(request);
+  const ctx = { requestId, remoteIp: ip };
 
   // 1. IP rate limit.
   const rl = ipLimiter.check(ip);
   if (!rl.allowed) return rateLimitedResponse(rl, requestId);
 
   // 2. Auth — coordinator or admin only.
-  const cookieStore   = cookies();
+  const cookieStore = cookies();
   const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
   if (sessionCookie === undefined) {
     return NextResponse.json(
-      { success: false, data: null, error: { code: 'AUTH_REQUIRED' as const, message: 'Not authenticated.', statusCode: 401 }, requestId },
+      {
+        success: false,
+        data: null,
+        error: { code: 'AUTH_REQUIRED' as const, message: 'Not authenticated.', statusCode: 401 },
+        requestId,
+      },
       { status: 401 },
     );
   }
@@ -496,13 +539,27 @@ export async function POST(
     const role = decoded['role'] as string | undefined;
     if (role !== 'COORDINATOR' && role !== 'ADMIN') {
       return NextResponse.json(
-        { success: false, data: null, error: { code: 'FORBIDDEN' as const, message: 'Coordinator role required.', statusCode: 403 }, requestId },
+        {
+          success: false,
+          data: null,
+          error: {
+            code: 'FORBIDDEN' as const,
+            message: 'Coordinator role required.',
+            statusCode: 403,
+          },
+          requestId,
+        },
         { status: 403 },
       );
     }
   } catch {
     return NextResponse.json(
-      { success: false, data: null, error: { code: 'SESSION_EXPIRED' as const, message: 'Session expired.', statusCode: 401 }, requestId },
+      {
+        success: false,
+        data: null,
+        error: { code: 'SESSION_EXPIRED' as const, message: 'Session expired.', statusCode: 401 },
+        requestId,
+      },
       { status: 401 },
     );
   }
@@ -514,7 +571,16 @@ export async function POST(
     body = postBodySchema.parse(raw);
   } catch {
     return NextResponse.json(
-      { success: false, data: null, error: { code: 'VALIDATION_ERROR' as const, message: 'Invalid request body.', statusCode: 400 }, requestId },
+      {
+        success: false,
+        data: null,
+        error: {
+          code: 'VALIDATION_ERROR' as const,
+          message: 'Invalid request body.',
+          statusCode: 400,
+        },
+        requestId,
+      },
       { status: 400 },
     );
   }
@@ -525,7 +591,8 @@ export async function POST(
   if (needIsOnCooldown(needId)) {
     return NextResponse.json(
       {
-        success: false, data: null,
+        success: false,
+        data: null,
         error: {
           code: 'RATE_LIMITED' as const,
           message: 'This need was dispatched recently. Please wait before reassigning.',
@@ -545,7 +612,12 @@ export async function POST(
   const needSnap = await adminFirestore.collection(COLLECTIONS.NEEDS).doc(needId).get();
   if (!needSnap.exists) {
     return NextResponse.json(
-      { success: false, data: null, error: { code: 'NOT_FOUND' as const, message: 'Need not found.', statusCode: 404 }, requestId },
+      {
+        success: false,
+        data: null,
+        error: { code: 'NOT_FOUND' as const, message: 'Need not found.', statusCode: 404 },
+        requestId,
+      },
       { status: 404 },
     );
   }
@@ -556,7 +628,8 @@ export async function POST(
   if (!dispatchableStatuses.includes(need.status)) {
     return NextResponse.json(
       {
-        success: false, data: null,
+        success: false,
+        data: null,
         error: {
           code: 'CONFLICT' as const,
           message: `Need is in status "${need.status}" and cannot be dispatched.`,
@@ -570,13 +643,13 @@ export async function POST(
 
   // 6. Determine target volunteer + candidates list.
   let targetVolunteerId: string;
-  let allCandidates:     VolunteerMatch[] = [];
+  let allCandidates: VolunteerMatch[] = [];
   let matchScore = 100;
   let matchFactors = {
-    distanceScore:           100,
-    skillScore:              100,
-    languageScore:           100,
-    historyScore:            100,
+    distanceScore: 100,
+    skillScore: 100,
+    languageScore: 100,
+    historyScore: 100,
     estimatedDrivingMinutes: 0,
   };
 
@@ -584,19 +657,28 @@ export async function POST(
     const matches = await findBestVolunteers(need, 3, ctx);
     if (matches.length === 0) {
       return NextResponse.json(
-        { success: false, data: null, error: { code: 'NOT_FOUND' as const, message: 'No available volunteers found for this need.', statusCode: 404 }, requestId },
+        {
+          success: false,
+          data: null,
+          error: {
+            code: 'NOT_FOUND' as const,
+            message: 'No available volunteers found for this need.',
+            statusCode: 404,
+          },
+          requestId,
+        },
         { status: 404 },
       );
     }
-    allCandidates      = matches;
-    const top          = matches[0]!;
-    targetVolunteerId  = top.uid;
-    matchScore         = top.scores.compositeScore;
-    matchFactors       = {
-      distanceScore:           top.scores.distanceScore,
-      skillScore:              top.scores.skillScore,
-      languageScore:           top.scores.languageScore,
-      historyScore:            top.scores.historyScore,
+    allCandidates = matches;
+    const top = matches[0]!;
+    targetVolunteerId = top.uid;
+    matchScore = top.scores.compositeScore;
+    matchFactors = {
+      distanceScore: top.scores.distanceScore,
+      skillScore: top.scores.skillScore,
+      languageScore: top.scores.languageScore,
+      historyScore: top.scores.historyScore,
       estimatedDrivingMinutes: top.scores.estimatedDrivingMinutes,
     };
   } else {
@@ -604,14 +686,14 @@ export async function POST(
     // Compute scores for the manual pick so the audit log is accurate.
     const matches = await findBestVolunteers(need, 3, ctx);
     allCandidates = matches;
-    const picked  = matches.find((m) => m.uid === targetVolunteerId);
+    const picked = matches.find((m) => m.uid === targetVolunteerId);
     if (picked) {
-      matchScore   = picked.scores.compositeScore;
+      matchScore = picked.scores.compositeScore;
       matchFactors = {
-        distanceScore:           picked.scores.distanceScore,
-        skillScore:              picked.scores.skillScore,
-        languageScore:           picked.scores.languageScore,
-        historyScore:            picked.scores.historyScore,
+        distanceScore: picked.scores.distanceScore,
+        skillScore: picked.scores.skillScore,
+        languageScore: picked.scores.languageScore,
+        historyScore: picked.scores.historyScore,
         estimatedDrivingMinutes: picked.scores.estimatedDrivingMinutes,
       };
     }
@@ -625,7 +707,12 @@ export async function POST(
 
   if (!profileSnap.exists) {
     return NextResponse.json(
-      { success: false, data: null, error: { code: 'NOT_FOUND' as const, message: 'Volunteer not found.', statusCode: 404 }, requestId },
+      {
+        success: false,
+        data: null,
+        error: { code: 'NOT_FOUND' as const, message: 'Volunteer not found.', statusCode: 404 },
+        requestId,
+      },
       { status: 404 },
     );
   }
@@ -633,7 +720,16 @@ export async function POST(
   const profile = profileSnap.data() as VolunteerProfile;
   if (!profile.isAvailable || profile.activeAssignmentId !== null) {
     return NextResponse.json(
-      { success: false, data: null, error: { code: 'CONFLICT' as const, message: 'Volunteer is no longer available.', statusCode: 409 }, requestId },
+      {
+        success: false,
+        data: null,
+        error: {
+          code: 'CONFLICT' as const,
+          message: 'Volunteer is no longer available.',
+          statusCode: 409,
+        },
+        requestId,
+      },
       { status: 409 },
     );
   }
@@ -646,7 +742,7 @@ export async function POST(
   try {
     const result = await performDispatch({
       needId,
-      volunteerId:   targetVolunteerId,
+      volunteerId: targetVolunteerId,
       coordinatorId,
       message,
       matchScore,
@@ -666,7 +762,16 @@ export async function POST(
     needLastDispatch.delete(needId);
     logger.error('POST', 'dispatch failed', toLogError(err), { needId, targetVolunteerId }, ctx);
     return NextResponse.json(
-      { success: false, data: null, error: { code: 'INTERNAL_ERROR' as const, message: 'Dispatch failed. Please try again.', statusCode: 500 }, requestId },
+      {
+        success: false,
+        data: null,
+        error: {
+          code: 'INTERNAL_ERROR' as const,
+          message: 'Dispatch failed. Please try again.',
+          statusCode: 500,
+        },
+        requestId,
+      },
       { status: 500 },
     );
   }

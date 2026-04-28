@@ -90,6 +90,13 @@ export enum NeedSeverity {
  */
 export type RawReportStatus = 'PENDING' | 'PROCESSED' | 'DUPLICATE';
 
+/**
+ * Origin of a report or need.
+ * CITIZEN — submitted via the real-time need reporting form during a disaster.
+ * SURVEY  — submitted via the NGO community survey form (pre-disaster vulnerability data).
+ */
+export type ReportSource = 'CITIZEN' | 'SURVEY';
+
 // ---------------------------------------------------------------------------
 // Branded primitives
 // ---------------------------------------------------------------------------
@@ -224,6 +231,12 @@ export interface RawReport {
   /** Current stage in the AI processing pipeline. */
   readonly status: RawReportStatus;
   /**
+   * Origin of this report.
+   * Defaults to CITIZEN for real-time panic reports.
+   * Set to SURVEY when an NGO field worker uses the community survey form.
+   */
+  readonly source: ReportSource;
+  /**
    * ID of the CanonicalNeed this report was merged into.
    * Populated after the AI pipeline runs.  Null while still PENDING.
    */
@@ -306,6 +319,12 @@ export interface CanonicalNeed {
    * All needs are scoped to a disaster event for filtering and analytics.
    */
   readonly disasterEventId: string;
+  /**
+   * Origin of the source reports aggregated into this need.
+   * SURVEY needs appear as pre-mapped vulnerability pins on the war room map,
+   * distinct from real-time CITIZEN crisis pins.
+   */
+  readonly source: ReportSource;
   /** Server timestamp of first creation. */
   readonly createdAt: Timestamp;
   /** Server timestamp of last update to any field. */

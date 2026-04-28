@@ -49,20 +49,23 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import {
-  NeedStatus, AssignmentStatus, DeclineReason, COLLECTIONS,
+  NeedStatus,
+  AssignmentStatus,
+  DeclineReason,
+  COLLECTIONS,
   type CanonicalNeed,
 } from '@rahatnet/types';
 import type { ApiResponse } from '@rahatnet/types';
 import { createServerLogger, toLogError } from '@/lib/api/serverLogger';
 import { createRateLimiter, getClientIp, rateLimitedResponse } from '@/lib/api/rateLimit';
-import { cancelAutoReassign } from '../route';
+import { cancelAutoReassign } from '../autoReassign';
 
 // ---------------------------------------------------------------------------
 // Module singletons
 // ---------------------------------------------------------------------------
 
-const logger     = createServerLogger('dispatch-patch');
-const ipLimiter  = createRateLimiter({ limit: 20, windowMs: 60_000, prefix: 'dispatch-patch' });
+const logger = createServerLogger('dispatch-patch');
+const ipLimiter = createRateLimiter({ limit: 20, windowMs: 60_000, prefix: 'dispatch-patch' });
 
 const SESSION_COOKIE_NAME =
   (process.env['SESSION_COOKIE_NAME'] as string | undefined) ?? 'rahatnet_session';
@@ -75,10 +78,12 @@ const patchBodySchema = z.object({
   status: z.nativeEnum(AssignmentStatus),
   reason: z.string().max(500).optional(),
   /** Volunteer's current GPS location at the time of the update. */
-  location: z.object({
-    lat: z.number().min(-90).max(90),
-    lng: z.number().min(-180).max(180),
-  }).optional(),
+  location: z
+    .object({
+      lat: z.number().min(-90).max(90),
+      lng: z.number().min(-180).max(180),
+    })
+    .optional(),
   /** Free-text note for DECLINED(OTHER) or FAILED status. */
   declinedNote: z.string().max(500).optional(),
 });
@@ -92,20 +97,25 @@ export async function PATCH(
   { params }: { params: { assignmentId: string } },
 ): Promise<NextResponse<ApiResponse<{ assignmentId: string; status: string }>>> {
   const { assignmentId } = params;
-  const requestId        = request.headers.get('x-request-id') ?? crypto.randomUUID();
-  const ip               = getClientIp(request);
-  const ctx              = { requestId, remoteIp: ip };
+  const requestId = request.headers.get('x-request-id') ?? crypto.randomUUID();
+  const ip = getClientIp(request);
+  const ctx = { requestId, remoteIp: ip };
 
   // Rate limit.
   const rl = ipLimiter.check(ip);
   if (!rl.allowed) return rateLimitedResponse(rl, requestId);
 
   // Auth.
-  const cookieStore   = cookies();
+  const cookieStore = cookies();
   const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
   if (sessionCookie === undefined) {
     return NextResponse.json(
-      { success: false, data: null, error: { code: 'AUTH_REQUIRED' as const, message: 'Not authenticated.', statusCode: 401 }, requestId },
+      {
+        success: false,
+        data: null,
+        error: { code: 'AUTH_REQUIRED' as const, message: 'Not authenticated.', statusCode: 401 },
+        requestId,
+      },
       { status: 401 },
     );
   }
@@ -115,11 +125,16 @@ export async function PATCH(
   try {
     const { verifySessionCookie } = await import('@/lib/firebase/admin');
     const decoded = await verifySessionCookie(sessionCookie.value, ctx);
-    callerId   = decoded.uid;
+    callerId = decoded.uid;
     callerRole = (decoded['role'] as string | undefined) ?? 'VOLUNTEER';
   } catch {
     return NextResponse.json(
-      { success: false, data: null, error: { code: 'SESSION_EXPIRED' as const, message: 'Session expired.', statusCode: 401 }, requestId },
+      {
+        success: false,
+        data: null,
+        error: { code: 'SESSION_EXPIRED' as const, message: 'Session expired.', statusCode: 401 },
+        requestId,
+      },
       { status: 401 },
     );
   }
@@ -131,13 +146,22 @@ export async function PATCH(
     body = patchBodySchema.parse(raw);
   } catch {
     return NextResponse.json(
-      { success: false, data: null, error: { code: 'VALIDATION_ERROR' as const, message: 'Invalid request body.', statusCode: 400 }, requestId },
+      {
+        success: false,
+        data: null,
+        error: {
+          code: 'VALIDATION_ERROR' as const,
+          message: 'Invalid request body.',
+          statusCode: 400,
+        },
+        requestId,
+      },
       { status: 400 },
     );
   }
 
   const { adminFirestore } = await import('@/lib/firebase/admin');
-  const { FieldValue }     = await import('firebase-admin/firestore');
+  const { FieldValue } = await import('firebase-admin/firestore');
 
   // Fetch the assignment.
   const assignSnap = await adminFirestore
@@ -147,53 +171,75 @@ export async function PATCH(
 
   if (!assignSnap.exists) {
     return NextResponse.json(
-      { success: false, data: null, error: { code: 'NOT_FOUND' as const, message: 'Assignment not found.', statusCode: 404 }, requestId },
+      {
+        success: false,
+        data: null,
+        error: { code: 'NOT_FOUND' as const, message: 'Assignment not found.', statusCode: 404 },
+        requestId,
+      },
       { status: 404 },
     );
   }
 
   const assignment = assignSnap.data() as {
-    volunteerId:   string;
-    needId:        string;
+    volunteerId: string;
+    needId: string;
     coordinatorId: string;
-    status:        AssignmentStatus;
-    createdAt:     { seconds: number };
-    acceptedAt:    { seconds: number } | null;
-    arrivedAt:     { seconds: number } | null;
+    status: AssignmentStatus;
+    createdAt: { seconds: number };
+    acceptedAt: { seconds: number } | null;
+    arrivedAt: { seconds: number } | null;
   };
 
   // Auth check: volunteers can only update their own assignments.
   if (callerRole === 'VOLUNTEER' && assignment.volunteerId !== callerId) {
     return NextResponse.json(
-      { success: false, data: null, error: { code: 'FORBIDDEN' as const, message: 'Cannot update another volunteer\'s assignment.', statusCode: 403 }, requestId },
+      {
+        success: false,
+        data: null,
+        error: {
+          code: 'FORBIDDEN' as const,
+          message: "Cannot update another volunteer's assignment.",
+          statusCode: 403,
+        },
+        requestId,
+      },
       { status: 403 },
     );
   }
 
-  logger.info('PATCH', 'status update', {
-    assignmentId,
-    from: assignment.status,
-    to:   body.status,
-    callerId,
-  }, ctx);
+  logger.info(
+    'PATCH',
+    'status update',
+    {
+      assignmentId,
+      from: assignment.status,
+      to: body.status,
+      callerId,
+    },
+    ctx,
+  );
 
   const needId = assignment.needId;
-  const now    = Date.now();
+  const now = Date.now();
 
   try {
     switch (body.status) {
       // ── ACCEPTED ────────────────────────────────────────────────────────
 
       case AssignmentStatus.ACCEPTED: {
-        if (assignment.status !== AssignmentStatus.NOTIFIED && assignment.status !== AssignmentStatus.CREATED) {
+        if (
+          assignment.status !== AssignmentStatus.NOTIFIED &&
+          assignment.status !== AssignmentStatus.CREATED
+        ) {
           return conflictResponse(requestId, `Cannot accept from status "${assignment.status}"`);
         }
 
         await adminFirestore.runTransaction(async (tx) => {
           tx.update(adminFirestore.collection(COLLECTIONS.ASSIGNMENTS).doc(assignmentId), {
-            status:     AssignmentStatus.ACCEPTED,
+            status: AssignmentStatus.ACCEPTED,
             acceptedAt: FieldValue.serverTimestamp(),
-            updatedAt:  FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
           });
         });
 
@@ -201,10 +247,22 @@ export async function PATCH(
         cancelAutoReassign(assignmentId);
 
         // Append history event.
-        void appendHistoryEvent(assignmentId, assignment.volunteerId, AssignmentStatus.NOTIFIED, AssignmentStatus.ACCEPTED, body.location ?? null);
+        void appendHistoryEvent(
+          assignmentId,
+          assignment.volunteerId,
+          AssignmentStatus.NOTIFIED,
+          AssignmentStatus.ACCEPTED,
+          body.location ?? null,
+        );
 
         // Notify coordinator (best-effort).
-        void notifyCoordinator(needId, assignment.coordinatorId, `Volunteer accepted task for ${needId}`, 'TASK_ACCEPTED', ctx);
+        void notifyCoordinator(
+          needId,
+          assignment.coordinatorId,
+          `Volunteer accepted task for ${needId}`,
+          'TASK_ACCEPTED',
+          ctx,
+        );
 
         break;
       }
@@ -216,17 +274,32 @@ export async function PATCH(
           assignment.status !== AssignmentStatus.ACCEPTED &&
           assignment.status !== AssignmentStatus.NOTIFIED
         ) {
-          return conflictResponse(requestId, `Cannot mark in-progress from status "${assignment.status}"`);
+          return conflictResponse(
+            requestId,
+            `Cannot mark in-progress from status "${assignment.status}"`,
+          );
         }
 
         await adminFirestore.collection(COLLECTIONS.ASSIGNMENTS).doc(assignmentId).update({
-          status:     AssignmentStatus.IN_PROGRESS,
-          arrivedAt:  FieldValue.serverTimestamp(),
-          updatedAt:  FieldValue.serverTimestamp(),
+          status: AssignmentStatus.IN_PROGRESS,
+          arrivedAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
         });
 
-        void appendHistoryEvent(assignmentId, assignment.volunteerId, assignment.status, AssignmentStatus.IN_PROGRESS, body.location ?? null);
-        void notifyCoordinator(needId, assignment.coordinatorId, `Volunteer arrived on site`, 'VOLUNTEER_ARRIVED', ctx);
+        void appendHistoryEvent(
+          assignmentId,
+          assignment.volunteerId,
+          assignment.status,
+          AssignmentStatus.IN_PROGRESS,
+          body.location ?? null,
+        );
+        void notifyCoordinator(
+          needId,
+          assignment.coordinatorId,
+          `Volunteer arrived on site`,
+          'VOLUNTEER_ARRIVED',
+          ctx,
+        );
         break;
       }
 
@@ -244,32 +317,30 @@ export async function PATCH(
         }
 
         const completedAt = Date.now();
-        const responseTimeMinutes =
-          assignment.createdAt
-            ? Math.round((completedAt - assignment.createdAt.seconds * 1000) / 60_000)
-            : 0;
-        const onSiteMinutes =
-          assignment.arrivedAt
-            ? Math.round((completedAt - assignment.arrivedAt.seconds * 1000) / 60_000)
-            : 0;
+        const responseTimeMinutes = assignment.createdAt
+          ? Math.round((completedAt - assignment.createdAt.seconds * 1000) / 60_000)
+          : 0;
+        const onSiteMinutes = assignment.arrivedAt
+          ? Math.round((completedAt - assignment.arrivedAt.seconds * 1000) / 60_000)
+          : 0;
 
         // Atomic: complete assignment + resolve need.
         await adminFirestore.runTransaction(async (tx) => {
           tx.update(adminFirestore.collection(COLLECTIONS.ASSIGNMENTS).doc(assignmentId), {
-            status:      AssignmentStatus.COMPLETED,
+            status: AssignmentStatus.COMPLETED,
             completedAt: FieldValue.serverTimestamp(),
-            updatedAt:   FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
             metrics: {
               responseTimeMinutes,
               onSiteMinutes,
               coordinatorRating: null,
-              coordinatorNote:   null,
+              coordinatorNote: null,
             },
           });
           tx.update(adminFirestore.collection(COLLECTIONS.NEEDS).doc(needId), {
-            status:     NeedStatus.RESOLVED,
+            status: NeedStatus.RESOLVED,
             resolvedAt: FieldValue.serverTimestamp(),
-            updatedAt:  FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
           });
         });
 
@@ -281,17 +352,37 @@ export async function PATCH(
           try {
             const { getDatabase } = await import('firebase-admin/database');
             await getDatabase().ref(`liveNeedsFeed/${needId}`).update({
-              status:    NeedStatus.RESOLVED,
+              status: NeedStatus.RESOLVED,
               updatedAt: Date.now(),
             });
-          } catch { /* non-fatal */ }
+          } catch {
+            /* non-fatal */
+          }
         })();
 
         // BigQuery metrics log.
-        void logCompletionToBigQuery(assignmentId, needId, assignment.volunteerId, responseTimeMinutes, onSiteMinutes);
+        void logCompletionToBigQuery(
+          assignmentId,
+          needId,
+          assignment.volunteerId,
+          responseTimeMinutes,
+          onSiteMinutes,
+        );
 
-        void appendHistoryEvent(assignmentId, assignment.volunteerId, assignment.status, AssignmentStatus.COMPLETED, body.location ?? null);
-        void notifyCoordinator(needId, assignment.coordinatorId, `Task completed in ${responseTimeMinutes} min`, 'TASK_COMPLETED', ctx);
+        void appendHistoryEvent(
+          assignmentId,
+          assignment.volunteerId,
+          assignment.status,
+          AssignmentStatus.COMPLETED,
+          body.location ?? null,
+        );
+        void notifyCoordinator(
+          needId,
+          assignment.coordinatorId,
+          `Task completed in ${responseTimeMinutes} min`,
+          'TASK_COMPLETED',
+          ctx,
+        );
         break;
       }
 
@@ -302,25 +393,38 @@ export async function PATCH(
 
         await adminFirestore.runTransaction(async (tx) => {
           tx.update(adminFirestore.collection(COLLECTIONS.ASSIGNMENTS).doc(assignmentId), {
-            status:        AssignmentStatus.DECLINED,
+            status: AssignmentStatus.DECLINED,
             declinedReason,
-            declinedNote:  body.declinedNote ?? null,
-            updatedAt:     FieldValue.serverTimestamp(),
+            declinedNote: body.declinedNote ?? null,
+            updatedAt: FieldValue.serverTimestamp(),
           });
           // Revert need to VERIFIED.
           tx.update(adminFirestore.collection(COLLECTIONS.NEEDS).doc(needId), {
-            status:              NeedStatus.VERIFIED,
+            status: NeedStatus.VERIFIED,
             assignedVolunteerId: null,
-            assignedAt:          null,
-            updatedAt:           FieldValue.serverTimestamp(),
+            assignedAt: null,
+            updatedAt: FieldValue.serverTimestamp(),
           });
         });
 
         // Cancel the timer so it doesn't double-trigger.
         cancelAutoReassign(assignmentId);
 
-        void appendHistoryEvent(assignmentId, assignment.volunteerId, assignment.status, AssignmentStatus.DECLINED, body.location ?? null, body.reason);
-        void notifyCoordinator(needId, assignment.coordinatorId, `Volunteer declined: ${declinedReason}`, 'TASK_DECLINED', ctx);
+        void appendHistoryEvent(
+          assignmentId,
+          assignment.volunteerId,
+          assignment.status,
+          AssignmentStatus.DECLINED,
+          body.location ?? null,
+          body.reason,
+        );
+        void notifyCoordinator(
+          needId,
+          assignment.coordinatorId,
+          `Volunteer declined: ${declinedReason}`,
+          'TASK_DECLINED',
+          ctx,
+        );
         break;
       }
 
@@ -329,27 +433,49 @@ export async function PATCH(
       case AssignmentStatus.FAILED: {
         await adminFirestore.runTransaction(async (tx) => {
           tx.update(adminFirestore.collection(COLLECTIONS.ASSIGNMENTS).doc(assignmentId), {
-            status:       AssignmentStatus.FAILED,
+            status: AssignmentStatus.FAILED,
             declinedNote: body.declinedNote ?? body.reason ?? null,
-            updatedAt:    FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
           });
           tx.update(adminFirestore.collection(COLLECTIONS.NEEDS).doc(needId), {
-            status:              NeedStatus.VERIFIED,
+            status: NeedStatus.VERIFIED,
             assignedVolunteerId: null,
-            assignedAt:          null,
-            updatedAt:           FieldValue.serverTimestamp(),
+            assignedAt: null,
+            updatedAt: FieldValue.serverTimestamp(),
           });
         });
 
         cancelAutoReassign(assignmentId);
-        void appendHistoryEvent(assignmentId, assignment.volunteerId, assignment.status, AssignmentStatus.FAILED, body.location ?? null, body.reason);
-        void notifyCoordinator(needId, assignment.coordinatorId, `Task failed: ${body.reason ?? 'unknown reason'}`, 'TASK_FAILED', ctx);
+        void appendHistoryEvent(
+          assignmentId,
+          assignment.volunteerId,
+          assignment.status,
+          AssignmentStatus.FAILED,
+          body.location ?? null,
+          body.reason,
+        );
+        void notifyCoordinator(
+          needId,
+          assignment.coordinatorId,
+          `Task failed: ${body.reason ?? 'unknown reason'}`,
+          'TASK_FAILED',
+          ctx,
+        );
         break;
       }
 
       default:
         return NextResponse.json(
-          { success: false, data: null, error: { code: 'VALIDATION_ERROR' as const, message: `Unsupported status transition to "${body.status}".`, statusCode: 400 }, requestId },
+          {
+            success: false,
+            data: null,
+            error: {
+              code: 'VALIDATION_ERROR' as const,
+              message: `Unsupported status transition to "${body.status}".`,
+              statusCode: 400,
+            },
+            requestId,
+          },
           { status: 400 },
         );
     }
@@ -359,9 +485,24 @@ export async function PATCH(
       { status: 200 },
     );
   } catch (err) {
-    logger.error('PATCH', 'status update failed', toLogError(err), { assignmentId, newStatus: body.status }, ctx);
+    logger.error(
+      'PATCH',
+      'status update failed',
+      toLogError(err),
+      { assignmentId, newStatus: body.status },
+      ctx,
+    );
     return NextResponse.json(
-      { success: false, data: null, error: { code: 'INTERNAL_ERROR' as const, message: 'Status update failed. Please try again.', statusCode: 500 }, requestId },
+      {
+        success: false,
+        data: null,
+        error: {
+          code: 'INTERNAL_ERROR' as const,
+          message: 'Status update failed. Please try again.',
+          statusCode: 500,
+        },
+        requestId,
+      },
       { status: 500 },
     );
   }
@@ -373,22 +514,27 @@ export async function PATCH(
 
 function conflictResponse(requestId: string, message: string) {
   return NextResponse.json(
-    { success: false, data: null, error: { code: 'CONFLICT' as const, message, statusCode: 409 }, requestId },
+    {
+      success: false,
+      data: null,
+      error: { code: 'CONFLICT' as const, message, statusCode: 409 },
+      requestId,
+    },
     { status: 409 },
   );
 }
 
 async function appendHistoryEvent(
-  assignmentId:    string,
-  volunteerId:     string,
-  previousStatus:  AssignmentStatus,
-  newStatus:       AssignmentStatus,
-  location:        { lat: number; lng: number } | null,
-  reason?:         string,
+  assignmentId: string,
+  volunteerId: string,
+  previousStatus: AssignmentStatus,
+  newStatus: AssignmentStatus,
+  location: { lat: number; lng: number } | null,
+  reason?: string,
 ): Promise<void> {
   try {
     const { adminFirestore } = await import('@/lib/firebase/admin');
-    const { FieldValue }     = await import('firebase-admin/firestore');
+    const { FieldValue } = await import('firebase-admin/firestore');
     await adminFirestore
       .collection(COLLECTIONS.ASSIGNMENTS)
       .doc(assignmentId)
@@ -398,9 +544,9 @@ async function appendHistoryEvent(
         volunteerId,
         previousStatus,
         newStatus,
-        reason:             reason ?? null,
-        volunteerLocation:  location,
-        updatedAt:          FieldValue.serverTimestamp(),
+        reason: reason ?? null,
+        volunteerLocation: location,
+        updatedAt: FieldValue.serverTimestamp(),
       });
   } catch {
     // Non-fatal audit log.
@@ -408,18 +554,15 @@ async function appendHistoryEvent(
 }
 
 async function notifyCoordinator(
-  needId:        string,
+  needId: string,
   coordinatorId: string,
-  message:       string,
-  type:          string,
-  ctx:           { requestId?: string },
+  message: string,
+  type: string,
+  ctx: { requestId?: string },
 ): Promise<void> {
   try {
     const { adminFirestore, adminMessaging } = await import('@/lib/firebase/admin');
-    const profileSnap = await adminFirestore
-      .collection(COLLECTIONS.USERS)
-      .doc(coordinatorId)
-      .get();
+    const profileSnap = await adminFirestore.collection(COLLECTIONS.USERS).doc(coordinatorId).get();
 
     if (!profileSnap.exists) return;
     const fcmToken = (profileSnap.data() as { fcmToken?: string | null }).fcmToken;
@@ -436,47 +579,51 @@ async function notifyCoordinator(
 }
 
 async function updateVolunteerStats(
-  volunteerId:         string,
+  volunteerId: string,
   responseTimeMinutes: number,
 ): Promise<void> {
   try {
     const { adminFirestore } = await import('@/lib/firebase/admin');
-    const profileSnap = await adminFirestore
-      .collection(COLLECTIONS.USERS)
-      .doc(volunteerId)
-      .get();
+    const profileSnap = await adminFirestore.collection(COLLECTIONS.USERS).doc(volunteerId).get();
 
     if (!profileSnap.exists) return;
-    const stats = (profileSnap.data() as {
-      stats?: {
-        tasksCompleted: number;
-        completionRate: number;
-        avgResponseTimeMinutes: number | null;
-      };
-    }).stats;
+    const stats = (
+      profileSnap.data() as {
+        stats?: {
+          tasksCompleted: number;
+          completionRate: number;
+          avgResponseTimeMinutes: number | null;
+        };
+      }
+    ).stats;
 
     const completed = (stats?.tasksCompleted ?? 0) + 1;
-    const prevAvg   = stats?.avgResponseTimeMinutes ?? responseTimeMinutes;
+    const prevAvg = stats?.avgResponseTimeMinutes ?? responseTimeMinutes;
     // Running average: prevAvg * (n-1)/n + newVal/n
-    const newAvg = Math.round(prevAvg * ((completed - 1) / completed) + responseTimeMinutes / completed);
+    const newAvg = Math.round(
+      prevAvg * ((completed - 1) / completed) + responseTimeMinutes / completed,
+    );
 
-    await adminFirestore.collection(COLLECTIONS.USERS).doc(volunteerId).update({
-      'stats.tasksCompleted':          completed,
-      'stats.completionRate':          Math.min(1, (stats?.completionRate ?? 1)),
-      'stats.avgResponseTimeMinutes':  newAvg,
-      'stats.lastActiveAt':            new Date().toISOString(),
-    });
+    await adminFirestore
+      .collection(COLLECTIONS.USERS)
+      .doc(volunteerId)
+      .update({
+        'stats.tasksCompleted': completed,
+        'stats.completionRate': Math.min(1, stats?.completionRate ?? 1),
+        'stats.avgResponseTimeMinutes': newAvg,
+        'stats.lastActiveAt': new Date().toISOString(),
+      });
   } catch {
     // Non-fatal.
   }
 }
 
 async function logCompletionToBigQuery(
-  assignmentId:        string,
-  needId:              string,
-  volunteerId:         string,
+  assignmentId: string,
+  needId: string,
+  volunteerId: string,
   responseTimeMinutes: number,
-  onSiteMinutes:       number,
+  onSiteMinutes: number,
 ): Promise<void> {
   const projectId = process.env['GOOGLE_CLOUD_PROJECT_ID'];
   const datasetId = process.env['BIGQUERY_DATASET_ID'] ?? 'rahatnet_analytics';
@@ -489,12 +636,12 @@ async function logCompletionToBigQuery(
       .table('response_metrics')
       .insert([
         {
-          assignment_id:         assignmentId,
-          need_id:               needId,
-          volunteer_id:          volunteerId,
+          assignment_id: assignmentId,
+          need_id: needId,
+          volunteer_id: volunteerId,
           response_time_minutes: responseTimeMinutes,
-          on_site_minutes:       onSiteMinutes,
-          completed_at:          new Date().toISOString(),
+          on_site_minutes: onSiteMinutes,
+          completed_at: new Date().toISOString(),
         },
       ]);
   } catch {
