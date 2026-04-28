@@ -6,11 +6,7 @@
  * from the precache regardless of network state.
  */
 
-import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'Offline',
-};
+'use client';
 
 export default function OfflinePage() {
   return (
