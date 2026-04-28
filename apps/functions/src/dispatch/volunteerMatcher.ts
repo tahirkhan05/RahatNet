@@ -4,6 +4,7 @@ import { getMessaging } from 'firebase-admin/messaging';
 import { AssignmentStatus, COLLECTIONS } from '@rahatnet/types';
 import type { CanonicalNeed, VolunteerProfile } from '@rahatnet/types';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function haversineDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371000;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -17,7 +18,7 @@ function haversineDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
 }
 
 export const onNeedAssigned = onDocumentCreated(
-  { document: `${COLLECTIONS.ASSIGNMENTS}/{assignmentId}`, region: 'asia-south1' },
+  { document: `${COLLECTIONS.ASSIGNMENTS}/{assignmentId}`, region: 'us-central1' },
   async (event) => {
     const assignment = event.data?.data();
     if (!assignment) return;

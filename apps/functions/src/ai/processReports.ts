@@ -56,7 +56,7 @@ function clusterByGPS(reports: RawReport[]): RawReport[][] {
 }
 
 export const processReports = onRequest(
-  { region: 'asia-south1', memory: '1GiB', timeoutSeconds: 300 },
+  { region: 'us-central1', memory: '1GiB', timeoutSeconds: 300 },
   async (req, res) => {
     if (req.method !== 'POST') {
       res.status(405).json({ error: 'Method not allowed' });

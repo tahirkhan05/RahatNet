@@ -52,7 +52,7 @@ async function insertRows(
 export const onNeedResolved = onDocumentWritten(
   {
     document: `${COLLECTIONS.NEEDS}/{needId}`,
-    region:   'asia-south1',
+    region:   'us-central1',
   },
   async (event) => {
     const before = event.data?.before?.data() as { status?: string } | undefined;
@@ -102,7 +102,7 @@ export const onNeedResolved = onDocumentWritten(
 export const onAssignmentCompleted = onDocumentWritten(
   {
     document: `${COLLECTIONS.ASSIGNMENTS}/{assignmentId}`,
-    region:   'asia-south1',
+    region:   'us-central1',
   },
   async (event) => {
     const before = event.data?.before?.data() as { status?: string } | undefined;
@@ -149,7 +149,7 @@ export const onAssignmentCompleted = onDocumentWritten(
 export const onDisasterActivated = onDocumentWritten(
   {
     document: 'disasterEvents/{eventId}',
-    region:   'asia-south1',
+    region:   'us-central1',
   },
   async (event) => {
     // Only fire on CREATE (before doesn't exist).

@@ -1,45 +1,5 @@
 {
-  "hosting": {
-    "target": "rahatnet-web",
-    "public": "apps/web/.next/standalone",
-    "cleanUrls": true,
-    "trailingSlash": false,
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ],
-    "headers": [
-      {
-        "source": "/sw.js",
-        "headers": [
-          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
-          { "key": "Content-Type",  "value": "application/javascript; charset=utf-8" }
-        ]
-      },
-      {
-        "source": "**/*.@(js|css|woff2|woff|ttf|otf)",
-        "headers": [
-          { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-        ]
-      },
-      {
-        "source": "**",
-        "headers": [
-          { "key": "X-Frame-Options",        "value": "SAMEORIGIN" },
-          { "key": "X-Content-Type-Options",  "value": "nosniff" },
-          { "key": "Referrer-Policy",         "value": "strict-origin-when-cross-origin" },
-          { "key": "Permissions-Policy",      "value": "camera=(), microphone=(self), geolocation=(self)" }
-        ]
-      }
-    ],
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ]
-  },
+  "apphosting": {},
   "database": {
     "rules": "database.rules.json"
   },
@@ -62,7 +22,8 @@
         "*.local"
       ],
       "predeploy": [
-        "npm --prefix apps/functions run build"
+        "pnpm --filter @rahatnet/types build",
+        "pnpm --filter @rahatnet/functions build"
       ]
     }
   ],

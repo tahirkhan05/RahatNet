@@ -1,11 +1,17 @@
 {
-  "extends": "../../packages/config/typescript/node.json",
   "compilerOptions": {
-    "composite": true,
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
     "outDir": "./dist",
     "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
     "paths": {
-      "@rahatnet/types": ["../../packages/types/src/index.ts"]
+      "@rahatnet/types": ["../../packages/types/dist/index.d.ts"]
     }
   },
   "include": ["src/**/*.ts"],

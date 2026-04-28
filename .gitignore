@@ -40,9 +40,14 @@ service-account.json
 
 # Build outputs
 dist/
+dist-cjs/
 build/
 .next/
 out/
+apps/functions/dist/
+packages/types/dist/
+packages/types/dist-cjs/
+packages/ui/dist/
 
 # Turbo
 .turbo/

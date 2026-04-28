@@ -1,0 +1,15 @@
+runConfig:
+  runtime: nodejs20
+  cpu: 1
+  memoryMiB: 512
+  concurrency: 80
+  minInstances: 0
+  maxInstances: 10
+
+env:
+  - variable: NODE_ENV
+    value: production
+  - variable: NEXT_PUBLIC_ENV
+    value: production
+  - variable: NEXT_PUBLIC_ACTIVE_DISASTER_ID
+    value: active-disaster-001

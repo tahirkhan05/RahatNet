@@ -344,7 +344,7 @@ export async function sendTaskNotification(
           channelId:    'tasks',
           priority:     'max',
           defaultSound: true,
-          vibrationTimingsMillis: [200, 100, 100],
+          vibrateTimingsMillis: [200, 100, 100],
         },
       },
       apns: {

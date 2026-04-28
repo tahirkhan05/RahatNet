@@ -390,7 +390,7 @@ export const pollIMDAlerts = onSchedule(
   {
     schedule:       'every 15 minutes',
     timeZone:       'Asia/Kolkata',
-    region:         'asia-south1',
+    region:         'us-central1',
     memory:         '512MiB',
     timeoutSeconds: 300,
   },
@@ -468,8 +468,10 @@ export const pollIMDAlerts = onSchedule(
           state:               alert.state,
           headline:            alert.headline,
           details:             alert.details,
-          issuedAt:            Timestamp.now(),
-          validUntil:          Timestamp.fromMillis(Date.now() + 24 * 60 * 60 * 1_000),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          issuedAt:            Timestamp.now() as any,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          validUntil:          Timestamp.fromMillis(Date.now() + 24 * 60 * 60 * 1_000) as any,
           source:              alert.source,
           rawPayload:          alert.rawPayload,
           activationTriggered: false,
