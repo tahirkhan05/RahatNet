@@ -1,0 +1,6 @@
+{
+  "framework": "nextjs",
+  "installCommand": "corepack enable pnpm && pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm --filter @rahatnet/web build",
+  "outputDirectory": "apps/web/.next"
+}
