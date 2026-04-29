@@ -4,12 +4,26 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  LogOut, Trash2, User, Loader2, HandHeart, Map,
-  ToggleLeft, ToggleRight, Pencil, Check, X, ChevronRight,
+  LogOut,
+  Trash2,
+  User,
+  Loader2,
+  HandHeart,
+  Map,
+  ToggleLeft,
+  ToggleRight,
+  Pencil,
+  Check,
+  X,
+  ChevronRight,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useVolunteerStore } from '@/store/volunteerStore';
 import { VolunteerSkill } from '@rahatnet/types';
+import type { Language } from '@rahatnet/types';
+import { LanguageSelector } from '@/components/shared/LanguageSelector';
+import { useLang } from '@/lib/i18n/LanguageContext';
+import type { LangCode } from '@/lib/i18n/translations';
 
 const ALL_SKILLS = Object.values(VolunteerSkill);
 const SKILL_LABELS: Record<VolunteerSkill, string> = {
@@ -34,7 +48,8 @@ function ActiveTaskBanner() {
     if (!user?.uid) return;
     let unsub: (() => void) | undefined;
     void (async () => {
-      const { collection, query, where, limit, onSnapshot, getFirestore } = await import('firebase/firestore');
+      const { collection, query, where, limit, onSnapshot, getFirestore } =
+        await import('firebase/firestore');
       const { firebaseApp } = await import('@/lib/firebase/client');
       const db = getFirestore(firebaseApp);
       const q = query(
@@ -43,7 +58,7 @@ function ActiveTaskBanner() {
         limit(10),
       );
       unsub = onSnapshot(q, async (snap) => {
-        const active = snap.docs.find(d => {
+        const active = snap.docs.find((d) => {
           const s = d.data()['status'] as string;
           return s === 'NOTIFIED' || s === 'ACCEPTED' || s === 'IN_PROGRESS' || s === 'CREATED';
         });
@@ -66,33 +81,39 @@ function ActiveTaskBanner() {
 
   if (!hasActiveTask) {
     return (
-      <div className="rounded-xl border border-dashed border-border p-4 text-center">
-        <p className="text-sm text-muted-foreground">No tasks assigned yet</p>
-        <p className="text-xs text-muted-foreground mt-1">Express interest in tasks below to get assigned</p>
+      <div className="border-border rounded-xl border border-dashed p-4 text-center">
+        <p className="text-muted-foreground text-sm">No tasks assigned yet</p>
+        <p className="text-muted-foreground mt-1 text-xs">
+          Express interest in tasks below to get assigned
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-2xl border-2 border-green-500/50 bg-green-500/10 overflow-hidden">
+    <div className="overflow-hidden rounded-2xl border-2 border-green-500/50 bg-green-500/10">
       {/* Task info */}
       <div className="p-4">
-        <div className="flex items-center justify-between mb-2">
+        <div className="mb-2 flex items-center justify-between">
           <span className="text-xs font-semibold uppercase tracking-wide text-green-600 dark:text-green-400">
             ✓ Coordinator assigned you
           </span>
         </div>
-        <p className="font-semibold text-foreground">{taskTitle || 'New task assigned'}</p>
-        <p className="text-sm text-muted-foreground mt-0.5">Tap Navigate to go to the location</p>
+        <p className="text-foreground font-semibold">{taskTitle || 'New task assigned'}</p>
+        <p className="text-muted-foreground mt-0.5 text-sm">Tap Navigate to go to the location</p>
       </div>
       {/* Actions */}
       <div className="grid grid-cols-2 border-t border-green-500/20">
-        <Link href="/volunteer/tasks"
-          className="flex items-center justify-center gap-2 py-3 text-sm font-semibold text-primary hover:bg-green-500/10 border-r border-green-500/20">
+        <Link
+          href="/volunteer/tasks"
+          className="text-primary flex items-center justify-center gap-2 border-r border-green-500/20 py-3 text-sm font-semibold hover:bg-green-500/10"
+        >
           <Map className="h-4 w-4" /> View details
         </Link>
-        <Link href="/volunteer/tasks"
-          className="flex items-center justify-center gap-2 py-3 text-sm font-semibold text-green-600 dark:text-green-400 hover:bg-green-500/10">
+        <Link
+          href="/volunteer/tasks"
+          className="flex items-center justify-center gap-2 py-3 text-sm font-semibold text-green-600 hover:bg-green-500/10 dark:text-green-400"
+        >
           <ChevronRight className="h-4 w-4" /> Navigate
         </Link>
       </div>
@@ -100,23 +121,35 @@ function ActiveTaskBanner() {
   );
 }
 
-function DeleteAccountModal({ onClose, onConfirm, loading }: {
-  onClose: () => void; onConfirm: () => void; loading: boolean;
+function DeleteAccountModal({
+  onClose,
+  onConfirm,
+  loading,
+}: {
+  onClose: () => void;
+  onConfirm: () => void;
+  loading: boolean;
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-      <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl">
-        <h2 className="text-lg font-semibold text-foreground">Delete account?</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
+      <div className="border-border bg-card w-full max-w-sm rounded-2xl border p-6 shadow-xl">
+        <h2 className="text-foreground text-lg font-semibold">Delete account?</h2>
+        <p className="text-muted-foreground mt-2 text-sm">
           This permanently deletes your account and all your data. Cannot be undone.
         </p>
         <div className="mt-6 flex gap-3">
-          <button onClick={onClose} disabled={loading}
-            className="flex-1 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent">
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="border-border text-foreground hover:bg-accent flex-1 rounded-lg border px-4 py-2.5 text-sm font-medium"
+          >
             Cancel
           </button>
-          <button onClick={onConfirm} disabled={loading}
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-destructive px-4 py-2.5 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 disabled:opacity-60">
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium disabled:opacity-60"
+          >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
             Delete
           </button>
@@ -144,12 +177,21 @@ export function VolunteerDashboard() {
         const { firebaseApp } = await import('@/lib/firebase/client');
         const snap = await getDoc(doc(getFirestore(firebaseApp), 'users', user.uid));
         if (snap.exists()) setAvailability(snap.data()['isAvailable'] === true);
-      } catch { /* silent */ }
+      } catch {
+        /* silent */
+      }
     })();
   }, [user?.uid]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const displayName = user?.displayName || user?.phoneNumber || 'Volunteer';
-  const initials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
+  const { lang, setLang } = useLang();
+  const displayName = user?.displayName || user?.phoneNumber || '';
+  const initials = displayName
+    .split(' ')
+    .filter(Boolean)
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 
   const handleToggleAvailability = async () => {
     setTogglingAvail(true);
@@ -207,7 +249,7 @@ export function VolunteerDashboard() {
 
   const toggleDraftSkill = (skill: VolunteerSkill) => {
     setDraftSkills((prev) =>
-      prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]
+      prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill],
     );
   };
 
@@ -234,20 +276,34 @@ export function VolunteerDashboard() {
           {user?.photoURL ? (
             <img src={user.photoURL} alt="" className="h-10 w-10 rounded-full object-cover" />
           ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+            <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold">
               {initials || <User className="h-5 w-5" />}
             </div>
           )}
           <div>
-            <p className="font-medium text-foreground">{displayName}</p>
-            <p className="text-xs text-muted-foreground">Volunteer</p>
+            <p className="text-foreground font-medium">{displayName || 'Volunteer'}</p>
+            <p className="text-muted-foreground text-xs">Volunteer</p>
           </div>
         </div>
-        <button onClick={handleLogout} disabled={loggingOut}
-          className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground">
-          {loggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
-          Sign out
-        </button>
+        <div className="flex items-center gap-1.5">
+          <LanguageSelector
+            variant="compact"
+            value={lang as unknown as Language}
+            onChange={(l) => setLang(l as unknown as LangCode)}
+          />
+          <button
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="text-muted-foreground hover:bg-accent hover:text-foreground flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm"
+          >
+            {loggingOut ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <LogOut className="h-4 w-4" />
+            )}
+            Sign out
+          </button>
+        </div>
       </div>
 
       {/* Availability toggle */}
@@ -257,78 +313,103 @@ export function VolunteerDashboard() {
         className={[
           'flex w-full items-center justify-between rounded-2xl p-5 transition-colors',
           isAvailable
-            ? 'bg-green-500/10 border border-green-500/30'
-            : 'bg-muted border border-border',
+            ? 'border border-green-500/30 bg-green-500/10'
+            : 'bg-muted border-border border',
         ].join(' ')}
       >
         <div>
-          <p className={`text-lg font-semibold ${isAvailable ? 'text-green-600 dark:text-green-400' : 'text-foreground'}`}>
+          <p
+            className={`text-lg font-semibold ${isAvailable ? 'text-green-600 dark:text-green-400' : 'text-foreground'}`}
+          >
             {isAvailable ? 'Available for tasks' : 'Currently unavailable'}
           </p>
-          <p className="mt-0.5 text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-0.5 text-sm">
             {isAvailable ? 'You will receive task assignments' : 'Toggle on to receive assignments'}
           </p>
         </div>
         {togglingAvail ? (
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
         ) : isAvailable ? (
           <ToggleRight className="h-8 w-8 text-green-500" />
         ) : (
-          <ToggleLeft className="h-8 w-8 text-muted-foreground" />
+          <ToggleLeft className="text-muted-foreground h-8 w-8" />
         )}
       </button>
 
       {/* Assigned Tasks section */}
       <div>
-        <h2 className="mb-2 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Assigned to you</h2>
+        <h2 className="text-muted-foreground mb-2 text-sm font-semibold uppercase tracking-wide">
+          Assigned to you
+        </h2>
         <ActiveTaskBanner />
       </div>
 
       {/* Available Tasks section */}
       <div>
-        <h2 className="mb-2 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Browse tasks</h2>
+        <h2 className="text-muted-foreground mb-2 text-sm font-semibold uppercase tracking-wide">
+          Browse tasks
+        </h2>
         <div className="grid grid-cols-2 gap-3">
-          <Link href="/volunteer/tasks"
-            className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4 hover:bg-accent transition-colors">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-              <HandHeart className="h-5 w-5 text-primary" />
+          <Link
+            href="/volunteer/tasks"
+            className="border-border bg-card hover:bg-accent flex flex-col gap-2 rounded-xl border p-4 transition-colors"
+          >
+            <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
+              <HandHeart className="text-primary h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-foreground">Available Tasks</p>
-              <p className="text-xs text-muted-foreground">Browse & express interest</p>
+              <p className="text-foreground text-sm font-semibold">Available Tasks</p>
+              <p className="text-muted-foreground text-xs">Browse & express interest</p>
             </div>
           </Link>
-          <Link href="/volunteer/map"
-            className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4 hover:bg-accent transition-colors">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-              <Map className="h-5 w-5 text-primary" />
+          <Link
+            href="/volunteer/map"
+            className="border-border bg-card hover:bg-accent flex flex-col gap-2 rounded-xl border p-4 transition-colors"
+          >
+            <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
+              <Map className="text-primary h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-foreground">Map View</p>
-              <p className="text-xs text-muted-foreground">All needs near you</p>
+              <p className="text-foreground text-sm font-semibold">Map View</p>
+              <p className="text-muted-foreground text-xs">All needs near you</p>
             </div>
           </Link>
         </div>
       </div>
 
       {/* Skills */}
-      <div className="rounded-xl border border-border bg-card p-4">
+      <div className="border-border bg-card rounded-xl border p-4">
         <div className="mb-3 flex items-center justify-between">
-          <p className="text-sm font-medium text-foreground">Your skills</p>
+          <p className="text-foreground text-sm font-medium">Your skills</p>
           {!editingSkills ? (
-            <button onClick={() => { setDraftSkills(skills); setEditingSkills(true); }}
-              className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground">
+            <button
+              onClick={() => {
+                setDraftSkills(skills);
+                setEditingSkills(true);
+              }}
+              className="text-muted-foreground hover:bg-accent hover:text-foreground flex items-center gap-1 rounded-lg px-2 py-1 text-xs"
+            >
               <Pencil className="h-3.5 w-3.5" /> Edit
             </button>
           ) : (
             <div className="flex gap-2">
-              <button onClick={() => setEditingSkills(false)} disabled={savingSkills}
-                className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted-foreground hover:bg-accent">
+              <button
+                onClick={() => setEditingSkills(false)}
+                disabled={savingSkills}
+                className="text-muted-foreground hover:bg-accent flex items-center gap-1 rounded-lg px-2 py-1 text-xs"
+              >
                 <X className="h-3.5 w-3.5" /> Cancel
               </button>
-              <button onClick={handleSaveSkills} disabled={savingSkills || draftSkills.length === 0}
-                className="flex items-center gap-1 rounded-lg bg-primary px-2 py-1 text-xs font-medium text-primary-foreground disabled:opacity-60">
-                {savingSkills ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+              <button
+                onClick={handleSaveSkills}
+                disabled={savingSkills || draftSkills.length === 0}
+                className="bg-primary text-primary-foreground flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium disabled:opacity-60"
+              >
+                {savingSkills ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Check className="h-3.5 w-3.5" />
+                )}
                 Save
               </button>
             </div>
@@ -336,27 +417,33 @@ export function VolunteerDashboard() {
         </div>
         {!editingSkills ? (
           <div className="flex flex-wrap gap-2">
-            {skills.length === 0
-              ? <p className="text-xs text-muted-foreground">No skills added. Tap Edit to add.</p>
-              : skills.map((skill) => (
-                <span key={skill}
-                  className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary capitalize">
+            {skills.length === 0 ? (
+              <p className="text-muted-foreground text-xs">No skills added. Tap Edit to add.</p>
+            ) : (
+              skills.map((skill) => (
+                <span
+                  key={skill}
+                  className="bg-primary/10 text-primary rounded-full px-3 py-1 text-xs font-medium capitalize"
+                >
                   {SKILL_LABELS[skill] ?? skill.replace(/_/g, ' ').toLowerCase()}
                 </span>
               ))
-            }
+            )}
           </div>
         ) : (
           <div className="flex flex-wrap gap-2">
             {ALL_SKILLS.map((skill) => (
-              <button key={skill} type="button"
+              <button
+                key={skill}
+                type="button"
                 onClick={() => toggleDraftSkill(skill)}
                 className={[
                   'rounded-full px-3 py-1 text-xs font-medium transition-colors',
                   draftSkills.includes(skill)
-                    ? 'bg-primary/10 text-primary ring-1 ring-primary/30'
+                    ? 'bg-primary/10 text-primary ring-primary/30 ring-1'
                     : 'bg-muted text-muted-foreground hover:bg-accent',
-                ].join(' ')}>
+                ].join(' ')}
+              >
                 {SKILL_LABELS[skill]}
               </button>
             ))}
@@ -365,9 +452,11 @@ export function VolunteerDashboard() {
       </div>
 
       {/* Account */}
-      <div className="rounded-xl border border-border bg-card">
-        <button onClick={() => setShowDeleteModal(true)}
-          className="flex w-full items-center gap-3 px-4 py-3.5 text-sm text-destructive hover:bg-destructive/5 rounded-xl">
+      <div className="border-border bg-card rounded-xl border">
+        <button
+          onClick={() => setShowDeleteModal(true)}
+          className="text-destructive hover:bg-destructive/5 flex w-full items-center gap-3 rounded-xl px-4 py-3.5 text-sm"
+        >
           <Trash2 className="h-4 w-4" />
           Delete account
         </button>

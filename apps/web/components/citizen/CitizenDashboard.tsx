@@ -326,9 +326,10 @@ export function CitizenDashboard() {
   };
 
   const { lang, setLang, t: tl } = useLang();
-  const displayName = user?.displayName || user?.phoneNumber || 'Citizen';
+  const displayName = user?.displayName || user?.phoneNumber || '';
   const initials = displayName
     .split(' ')
+    .filter(Boolean)
     .map((n: string) => n[0])
     .join('')
     .toUpperCase()
@@ -347,7 +348,7 @@ export function CitizenDashboard() {
             </div>
           )}
           <div>
-            <p className="text-foreground font-medium">{displayName}</p>
+            <p className="text-foreground font-medium">{displayName || 'Citizen'}</p>
             <p className="text-muted-foreground text-xs">Citizen</p>
           </div>
         </div>

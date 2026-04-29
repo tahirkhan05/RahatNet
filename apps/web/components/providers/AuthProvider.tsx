@@ -53,13 +53,13 @@ function AuthLoadingSkeleton() {
     <div
       role="status"
       aria-label="Loading your session"
-      className="flex min-h-screen items-center justify-center bg-background"
+      className="bg-background flex min-h-screen items-center justify-center"
     >
       <div className="flex flex-col items-center gap-4">
         {/* Animated logo mark */}
-        <div className="h-12 w-12 rounded-xl bg-primary/20 skeleton-shimmer" />
-        <div className="h-4 w-32 rounded bg-muted skeleton-shimmer" />
-        <div className="h-3 w-24 rounded bg-muted/60 skeleton-shimmer" />
+        <div className="bg-primary/20 skeleton-shimmer h-12 w-12 rounded-xl" />
+        <div className="bg-muted skeleton-shimmer h-4 w-32 rounded" />
+        <div className="bg-muted/60 skeleton-shimmer h-3 w-24 rounded" />
         <span className="sr-only">Loading your session…</span>
       </div>
     </div>
@@ -77,7 +77,7 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { setUser, setLoading, clearAuth, isLoading } = useAuthStore();
+  const { user, isAuthenticated, setUser, setLoading, clearAuth, isLoading } = useAuthStore();
 
   // Track whether the Firebase SDK has been lazily imported.
   const [sdkReady, setSdkReady] = React.useState(false);
@@ -105,9 +105,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     let unsubscribe: (() => void) | undefined;
 
     void (async () => {
-      const { onAuthStateChanged, getIdToken, setSessionCookie } = await import(
-        '@/lib/firebase/auth'
-      );
+      const { onAuthStateChanged, getIdToken, setSessionCookie } =
+        await import('@/lib/firebase/auth');
 
       unsubscribe = onAuthStateChanged(async (firebaseUser) => {
         if (firebaseUser === null) {
@@ -183,6 +182,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sdkReady, setUser, setLoading, clearAuth, router]);
 
+  // Reactive redirect: if auth has resolved and the user is authenticated but
+  // still sitting on a public path (e.g. race between router.replace and render),
+  // redirect them to their role home page.
+  React.useEffect(() => {
+    if (!resolved || !isAuthenticated || user == null) return;
+    if (!PUBLIC_PATHS.has(pathname)) return;
+    redirectAfterSignIn(user.role, pathname, router);
+  }, [resolved, isAuthenticated, user, pathname, router]);
+
   // Show the skeleton until we know whether the user is signed in.
   // `isLoading` from the store is true until setUser/clearAuth is called.
   if (!resolved && isLoading) {
@@ -205,11 +213,14 @@ function redirectAfterSignIn(
   if (!PUBLIC_PATHS.has(currentPath)) return;
 
   // Honour the ?redirect= query param set by middleware.
-  const params = new URLSearchParams(
-    typeof window !== 'undefined' ? window.location.search : '',
-  );
+  const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
   const redirect = params.get('redirect');
-  if (redirect !== null && redirect.startsWith('/') && !redirect.startsWith('//') && redirect !== '/') {
+  if (
+    redirect !== null &&
+    redirect.startsWith('/') &&
+    !redirect.startsWith('//') &&
+    redirect !== '/'
+  ) {
     router.replace(redirect);
     return;
   }

@@ -50,13 +50,14 @@ import { COLLECTIONS } from '@rahatnet/types';
 const getTotalSteps = (role: UserRole, hasPhone: boolean) => {
   const phoneStep = hasPhone ? 0 : 1;
   const photoStep = 1; // always shown
+  const nameStep = 1; // always shown
   const base: Record<UserRole, number> = {
-    [UserRole.CITIZEN]: 2,      // role + location (+ phone? + photo)
-    [UserRole.VOLUNTEER]: 3,    // role + skills + location (+ phone? + photo)
-    [UserRole.COORDINATOR]: 3,  // role + org + location (+ phone? + photo)
+    [UserRole.CITIZEN]: 2, // role + name + location (+ phone? + photo)
+    [UserRole.VOLUNTEER]: 3, // role + name + skills + location (+ phone? + photo)
+    [UserRole.COORDINATOR]: 3, // role + name + org + location (+ phone? + photo)
     [UserRole.ADMIN]: 3,
   };
-  return (base[role] ?? 2) + phoneStep + photoStep;
+  return (base[role] ?? 2) + nameStep + phoneStep + photoStep;
 };
 
 const SKILL_LABELS: Record<VolunteerSkill, string> = {
@@ -80,10 +81,16 @@ const roleSchema = z.object({
   role: z.nativeEnum(UserRole, { required_error: 'Please select a role.' }),
 });
 
+const nameSchema = z.object({
+  displayName: z
+    .string()
+    .min(2, 'Name must be at least 2 characters.')
+    .max(60, 'Name is too long.')
+    .trim(),
+});
+
 const volunteerSchema = z.object({
-  skills: z
-    .array(z.nativeEnum(VolunteerSkill))
-    .min(1, t('auth.onboarding.skills.required')),
+  skills: z.array(z.nativeEnum(VolunteerSkill)).min(1, t('auth.onboarding.skills.required')),
   languages: z.array(z.nativeEnum(Language)).min(1, 'Please select at least one language.'),
   avatarFile: z.instanceof(File).optional(),
 });
@@ -95,6 +102,7 @@ const coordinatorSchema = z.object({
 });
 
 type RoleValues = z.infer<typeof roleSchema>;
+type NameValues = z.infer<typeof nameSchema>;
 type VolunteerValues = z.infer<typeof volunteerSchema>;
 type CoordinatorValues = z.infer<typeof coordinatorSchema>;
 
@@ -137,25 +145,25 @@ function RoleOption({
       >
         {icon}
       </div>
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
-          <p className="font-medium text-foreground">{label}</p>
-          {selected && (
-            <Check className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-          )}
+          <p className="text-foreground font-medium">{label}</p>
+          {selected && <Check className="text-primary h-4 w-4 shrink-0" aria-hidden="true" />}
         </div>
-        <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
+        <p className="text-muted-foreground mt-0.5 text-sm">{description}</p>
       </div>
     </button>
   );
 }
 
-function StepRole({
-  onNext,
-}: {
-  onNext: (role: UserRole) => void;
-}) {
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<RoleValues>({
+function StepRole({ onNext }: { onNext: (role: UserRole) => void }) {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm<RoleValues>({
     resolver: zodResolver(roleSchema),
   });
   const selectedRole = watch('role');
@@ -164,12 +172,10 @@ function StepRole({
     <form onSubmit={handleSubmit((v) => onNext(v.role))} noValidate>
       <div className="space-y-4">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">
+          <h2 className="text-foreground text-lg font-semibold">
             {t('auth.onboarding.role.title')}
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t('auth.onboarding.role.subtitle')}
-          </p>
+          <p className="text-muted-foreground mt-1 text-sm">{t('auth.onboarding.role.subtitle')}</p>
         </div>
 
         <div role="radiogroup" aria-label="Role selection" className="space-y-2">
@@ -201,7 +207,7 @@ function StepRole({
         </div>
 
         {errors.role != null && (
-          <p role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
+          <p role="alert" className="text-destructive flex items-center gap-1.5 text-sm">
             <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
             {errors.role.message}
           </p>
@@ -209,11 +215,81 @@ function StepRole({
 
         <button
           type="submit"
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[48px]"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring flex min-h-[48px] w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         >
           {t('auth.onboarding.next')}
           <ChevronRight className="h-4 w-4" aria-hidden="true" />
         </button>
+      </div>
+    </form>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Step 1b: Name entry (all users)
+// ---------------------------------------------------------------------------
+
+function StepName({
+  defaultValue,
+  onNext,
+  onBack,
+}: {
+  defaultValue?: string;
+  onNext: (values: NameValues) => void;
+  onBack: () => void;
+}) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<NameValues>({
+    resolver: zodResolver(nameSchema),
+    defaultValues: { displayName: defaultValue ?? '' },
+  });
+
+  return (
+    <form onSubmit={handleSubmit(onNext)} noValidate>
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-foreground text-lg font-semibold">What's your name?</h2>
+          <p className="text-muted-foreground mt-1 text-sm">
+            This is how coordinators and volunteers will identify you.
+          </p>
+        </div>
+
+        <div className="space-y-1">
+          <label htmlFor="display-name" className="text-foreground block text-sm font-medium">
+            Full name
+          </label>
+          <input
+            id="display-name"
+            type="text"
+            autoComplete="name"
+            placeholder="e.g. Priya Sharma"
+            aria-invalid={errors.displayName != null}
+            {...register('displayName')}
+            className={inputCls(errors.displayName != null)}
+          />
+          {errors.displayName != null && <FieldError msg={errors.displayName.message} />}
+        </div>
+
+        <div className="flex items-center justify-between pt-1">
+          <button
+            type="button"
+            onClick={onBack}
+            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring flex items-center gap-1 rounded text-sm transition-colors focus-visible:outline-none focus-visible:ring-2"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
+            Back
+          </button>
+          <button
+            type="submit"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring flex items-center gap-1.5 rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          >
+            Next
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
       </div>
     </form>
   );
@@ -240,9 +316,9 @@ function SkillToggle({
       onClick={() => onToggle(skill)}
       className={[
         'flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition-colors',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2',
         selected
-          ? 'border-primary bg-primary/10 font-medium text-primary'
+          ? 'border-primary bg-primary/10 text-primary font-medium'
           : 'border-border bg-background text-foreground hover:bg-accent',
       ].join(' ')}
     >
@@ -259,7 +335,12 @@ function StepVolunteer({
   onNext: (values: VolunteerValues) => void;
   onBack: () => void;
 }) {
-  const { handleSubmit, watch, setValue, formState: { errors } } = useForm<VolunteerValues>({
+  const {
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm<VolunteerValues>({
     resolver: zodResolver(volunteerSchema),
     defaultValues: { skills: [], languages: [] },
   });
@@ -271,17 +352,13 @@ function StepVolunteer({
 
   const toggleSkill = (skill: VolunteerSkill) => {
     const current = selectedSkills ?? [];
-    const next = current.includes(skill)
-      ? current.filter((s) => s !== skill)
-      : [...current, skill];
+    const next = current.includes(skill) ? current.filter((s) => s !== skill) : [...current, skill];
     setValue('skills', next, { shouldValidate: true });
   };
 
   const toggleLanguage = (lang: Language) => {
     const current = selectedLanguages ?? [];
-    const next = current.includes(lang)
-      ? current.filter((l) => l !== lang)
-      : [...current, lang];
+    const next = current.includes(lang) ? current.filter((l) => l !== lang) : [...current, lang];
     setValue('languages', next, { shouldValidate: true });
   };
 
@@ -304,15 +381,11 @@ function StepVolunteer({
       <div className="space-y-5">
         {/* Skills */}
         <div>
-          <h3 className="font-medium text-foreground">{t('auth.onboarding.skills.title')}</h3>
-          <p className="mt-0.5 text-sm text-muted-foreground">
+          <h3 className="text-foreground font-medium">{t('auth.onboarding.skills.title')}</h3>
+          <p className="text-muted-foreground mt-0.5 text-sm">
             {t('auth.onboarding.skills.subtitle')}
           </p>
-          <div
-            role="group"
-            aria-label="Skills"
-            className="mt-3 flex flex-wrap gap-2"
-          >
+          <div role="group" aria-label="Skills" className="mt-3 flex flex-wrap gap-2">
             {Object.values(VolunteerSkill).map((skill) => (
               <SkillToggle
                 key={skill}
@@ -323,7 +396,7 @@ function StepVolunteer({
             ))}
           </div>
           {errors.skills != null && (
-            <p role="alert" className="mt-2 flex items-center gap-1.5 text-sm text-destructive">
+            <p role="alert" className="text-destructive mt-2 flex items-center gap-1.5 text-sm">
               <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
               {errors.skills.message}
             </p>
@@ -332,15 +405,11 @@ function StepVolunteer({
 
         {/* Languages */}
         <div>
-          <h3 className="font-medium text-foreground">{t('auth.onboarding.languages.title')}</h3>
-          <p className="mt-0.5 text-sm text-muted-foreground">
+          <h3 className="text-foreground font-medium">{t('auth.onboarding.languages.title')}</h3>
+          <p className="text-muted-foreground mt-0.5 text-sm">
             {t('auth.onboarding.languages.subtitle')}
           </p>
-          <div
-            role="group"
-            aria-label="Languages"
-            className="mt-3 flex flex-wrap gap-2"
-          >
+          <div role="group" aria-label="Languages" className="mt-3 flex flex-wrap gap-2">
             {SUPPORTED_LANGUAGES.map((lang) => {
               const isSelected = selectedLanguages?.includes(lang.code as Language) ?? false;
               return (
@@ -351,9 +420,9 @@ function StepVolunteer({
                   aria-checked={isSelected}
                   onClick={() => toggleLanguage(lang.code as Language)}
                   className={[
-                    'rounded-lg border px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    'focus-visible:ring-ring rounded-lg border px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2',
                     isSelected
-                      ? 'border-primary bg-primary/10 font-medium text-primary'
+                      ? 'border-primary bg-primary/10 text-primary font-medium'
                       : 'border-border bg-background text-foreground hover:bg-accent',
                   ].join(' ')}
                 >
@@ -363,7 +432,7 @@ function StepVolunteer({
             })}
           </div>
           {errors.languages != null && (
-            <p role="alert" className="mt-2 flex items-center gap-1.5 text-sm text-destructive">
+            <p role="alert" className="text-destructive mt-2 flex items-center gap-1.5 text-sm">
               <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
               {errors.languages.message}
             </p>
@@ -372,24 +441,30 @@ function StepVolunteer({
 
         {/* Avatar */}
         <div>
-          <p className="text-sm font-medium text-foreground">{t('auth.onboarding.avatar.label')}</p>
+          <p className="text-foreground text-sm font-medium">{t('auth.onboarding.avatar.label')}</p>
           <div className="mt-2 flex items-center gap-3">
             <div
-              className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-secondary"
+              className="bg-secondary flex h-14 w-14 items-center justify-center overflow-hidden rounded-full"
               aria-hidden="true"
             >
               {avatarPreview != null ? (
-                <img src={avatarPreview} alt="Avatar preview" className="h-full w-full object-cover" />
+                <img
+                  src={avatarPreview}
+                  alt="Avatar preview"
+                  className="h-full w-full object-cover"
+                />
               ) : (
-                <Upload className="h-5 w-5 text-muted-foreground" />
+                <Upload className="text-muted-foreground h-5 w-5" />
               )}
             </div>
             <div>
               <label
                 htmlFor="avatar-upload"
-                className="cursor-pointer rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-foreground transition-colors hover:bg-accent focus-within:ring-2 focus-within:ring-ring"
+                className="border-border bg-background text-foreground hover:bg-accent focus-within:ring-ring cursor-pointer rounded-lg border px-3 py-1.5 text-sm transition-colors focus-within:ring-2"
               >
-                {avatarFile != null ? t('auth.onboarding.avatar.change') : t('auth.onboarding.avatar.change')}
+                {avatarFile != null
+                  ? t('auth.onboarding.avatar.change')
+                  : t('auth.onboarding.avatar.change')}
                 <input
                   id="avatar-upload"
                   type="file"
@@ -405,7 +480,7 @@ function StepVolunteer({
                     setValue('avatarFile', undefined);
                     setAvatarPreview(null);
                   }}
-                  className="ml-2 text-sm text-muted-foreground hover:text-destructive"
+                  className="text-muted-foreground hover:text-destructive ml-2 text-sm"
                 >
                   {t('auth.onboarding.avatar.remove')}
                 </button>
@@ -431,17 +506,21 @@ function StepCoordinator({
   onNext: (values: CoordinatorValues) => void;
   onBack: () => void;
 }) {
-  const { register, handleSubmit, formState: { errors } } = useForm<CoordinatorValues>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<CoordinatorValues>({
     resolver: zodResolver(coordinatorSchema),
   });
 
   return (
     <form onSubmit={handleSubmit(onNext)} noValidate>
       <div className="space-y-4">
-        <h3 className="font-medium text-foreground">{t('auth.onboarding.org.title')}</h3>
+        <h3 className="text-foreground font-medium">{t('auth.onboarding.org.title')}</h3>
 
         <div className="space-y-1">
-          <label htmlFor="org-name" className="block text-sm font-medium text-foreground">
+          <label htmlFor="org-name" className="text-foreground block text-sm font-medium">
             {t('auth.onboarding.org.name.label')}
           </label>
           <input
@@ -457,7 +536,7 @@ function StepCoordinator({
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="designation" className="block text-sm font-medium text-foreground">
+          <label htmlFor="designation" className="text-foreground block text-sm font-medium">
             {t('auth.onboarding.org.designation.label')}
           </label>
           <input
@@ -472,7 +551,7 @@ function StepCoordinator({
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="district" className="block text-sm font-medium text-foreground">
+          <label htmlFor="district" className="text-foreground block text-sm font-medium">
             {t('auth.onboarding.org.district.label')}
           </label>
           <input
@@ -533,8 +612,8 @@ function StepLocation({
             permissionState === 'granted'
               ? 'bg-success/10 text-success'
               : permissionState === 'denied'
-              ? 'bg-destructive/10 text-destructive'
-              : 'bg-primary/10 text-primary',
+                ? 'bg-destructive/10 text-destructive'
+                : 'bg-primary/10 text-primary',
           ].join(' ')}
           aria-hidden="true"
         >
@@ -542,18 +621,18 @@ function StepLocation({
         </div>
 
         <div>
-          <h3 className="font-semibold text-foreground">{t('auth.onboarding.location.title')}</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h3 className="text-foreground font-semibold">{t('auth.onboarding.location.title')}</h3>
+          <p className="text-muted-foreground mt-1 text-sm">
             {permissionState === 'granted'
               ? t('auth.onboarding.location.granted')
               : permissionState === 'denied'
-              ? t('auth.onboarding.location.denied')
-              : t('auth.onboarding.location.subtitle')}
+                ? t('auth.onboarding.location.denied')
+                : t('auth.onboarding.location.subtitle')}
           </p>
         </div>
 
         {permissionState !== 'denied' && permissionState !== 'granted' && (
-          <p className="rounded-lg bg-secondary px-3 py-2 text-xs text-muted-foreground">
+          <p className="bg-secondary text-muted-foreground rounded-lg px-3 py-2 text-xs">
             🔒 {t('auth.onboarding.location.why')}
           </p>
         )}
@@ -566,7 +645,7 @@ function StepLocation({
             onClick={requestLocation}
             disabled={loading || permissionState === 'requesting'}
             aria-busy={permissionState === 'requesting'}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[48px] disabled:opacity-60"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring flex min-h-[48px] w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-60"
           >
             {(loading || permissionState === 'requesting') && (
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
@@ -579,7 +658,7 @@ function StepLocation({
           type="button"
           onClick={() => onFinish(false)}
           disabled={loading}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[48px] disabled:opacity-60"
+          className="border-border bg-background text-muted-foreground hover:bg-accent focus-visible:ring-ring flex min-h-[48px] w-full items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 disabled:opacity-60"
         >
           {loading && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
           {t('auth.onboarding.location.skip')}
@@ -590,7 +669,7 @@ function StepLocation({
         type="button"
         onClick={onBack}
         disabled={loading}
-        className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring flex items-center gap-1 rounded text-sm transition-colors focus-visible:outline-none focus-visible:ring-2"
       >
         <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
         {t('auth.onboarding.back')}
@@ -614,7 +693,7 @@ function inputCls(hasError: boolean) {
 function FieldError({ msg }: { msg?: string }) {
   if (msg == null) return null;
   return (
-    <p role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
+    <p role="alert" className="text-destructive flex items-center gap-1.5 text-sm">
       <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
       {msg}
     </p>
@@ -627,14 +706,14 @@ function WizardNav({ onBack }: { onBack: () => void }) {
       <button
         type="button"
         onClick={onBack}
-        className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring flex items-center gap-1 rounded text-sm transition-colors focus-visible:outline-none focus-visible:ring-2"
       >
         <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
         {t('auth.onboarding.back')}
       </button>
       <button
         type="submit"
-        className="flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring flex items-center gap-1.5 rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
       >
         {t('auth.onboarding.next')}
         <ChevronRight className="h-4 w-4" aria-hidden="true" />
@@ -651,18 +730,18 @@ function StepProgress({ current, total }: { current: number; total: number }) {
   const pct = Math.round((current / total) * 100);
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
+      <div className="text-muted-foreground flex items-center justify-between text-xs">
         <span>{t('auth.onboarding.step', { current, total })}</span>
         <span>{pct}%</span>
       </div>
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+      <div className="bg-secondary h-1.5 w-full overflow-hidden rounded-full">
         <div
           role="progressbar"
           aria-valuenow={pct}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-label="Onboarding progress"
-          className="h-full rounded-full bg-primary transition-all duration-300"
+          className="bg-primary h-full rounded-full transition-all duration-300"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -674,10 +753,11 @@ function StepProgress({ current, total }: { current: number; total: number }) {
 // Wizard orchestrator
 // ---------------------------------------------------------------------------
 
-type WizardStep = 'role' | 'volunteer' | 'coordinator' | 'phone' | 'photo' | 'location';
+type WizardStep = 'role' | 'name' | 'volunteer' | 'coordinator' | 'phone' | 'photo' | 'location';
 
 interface WizardState {
   role: UserRole | null;
+  displayName: string;
   volunteerValues: VolunteerValues | null;
   coordinatorValues: CoordinatorValues | null;
   phone: string | null;
@@ -705,18 +785,16 @@ function StepPhone({ onNext, onBack }: { onNext: (phone: string) => void; onBack
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold text-foreground">Your phone number</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h2 className="text-foreground text-lg font-semibold">Your phone number</h2>
+        <p className="text-muted-foreground mt-1 text-sm">
           Used so others can contact you during a disaster. Optional — you can skip.
         </p>
       </div>
 
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-foreground">
-          Mobile number
-        </label>
+        <label className="text-foreground mb-1.5 block text-sm font-medium">Mobile number</label>
         <div className="flex gap-2">
-          <span className="flex items-center rounded-lg border border-border bg-muted px-3 text-sm text-muted-foreground">
+          <span className="border-border bg-muted text-muted-foreground flex items-center rounded-lg border px-3 text-sm">
             🇮🇳 +91
           </span>
           <input
@@ -724,26 +802,37 @@ function StepPhone({ onNext, onBack }: { onNext: (phone: string) => void; onBack
             inputMode="numeric"
             maxLength={10}
             value={phone}
-            onChange={(e) => { setPhone(e.target.value.replace(/\D/g, '')); setError(null); }}
+            onChange={(e) => {
+              setPhone(e.target.value.replace(/\D/g, ''));
+              setError(null);
+            }}
             placeholder="98765 43210"
-            className="flex-1 rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:ring-ring flex-1 rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2"
           />
         </div>
-        {error && <p className="mt-1.5 text-sm text-destructive">{error}</p>}
+        {error && <p className="text-destructive mt-1.5 text-sm">{error}</p>}
       </div>
 
       <div className="flex gap-3">
-        <button type="button" onClick={onBack}
-          className="flex items-center gap-1 rounded-lg border border-border px-4 py-2.5 text-sm text-muted-foreground hover:bg-accent">
+        <button
+          type="button"
+          onClick={onBack}
+          className="border-border text-muted-foreground hover:bg-accent flex items-center gap-1 rounded-lg border px-4 py-2.5 text-sm"
+        >
           <ChevronLeft className="h-4 w-4" /> Back
         </button>
-        <button type="submit"
-          className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 min-h-[48px]">
+        <button
+          type="submit"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold"
+        >
           Next <ChevronRight className="h-4 w-4" />
         </button>
       </div>
-      <button type="button" onClick={() => onNext('')}
-        className="w-full text-center text-sm text-muted-foreground hover:text-foreground">
+      <button
+        type="button"
+        onClick={() => onNext('')}
+        className="text-muted-foreground hover:text-foreground w-full text-center text-sm"
+      >
         Skip for now
       </button>
     </form>
@@ -754,7 +843,11 @@ function StepPhone({ onNext, onBack }: { onNext: (phone: string) => void; onBack
 // Step: Profile photo (all roles)
 // ---------------------------------------------------------------------------
 
-function StepPhoto({ onNext, onBack, existingPhotoUrl }: {
+function StepPhoto({
+  onNext,
+  onBack,
+  existingPhotoUrl,
+}: {
   onNext: (file: File | null) => void;
   onBack: () => void;
   existingPhotoUrl?: string | null;
@@ -769,43 +862,67 @@ function StepPhoto({ onNext, onBack, existingPhotoUrl }: {
     setPreview(URL.createObjectURL(f));
   };
 
-  React.useEffect(() => () => { if (preview && preview.startsWith('blob:')) URL.revokeObjectURL(preview); }, [preview]);
+  React.useEffect(
+    () => () => {
+      if (preview && preview.startsWith('blob:')) URL.revokeObjectURL(preview);
+    },
+    [preview],
+  );
 
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-semibold text-foreground">Add a profile photo</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h2 className="text-foreground text-lg font-semibold">Add a profile photo</h2>
+        <p className="text-muted-foreground mt-1 text-sm">
           Helps volunteers and coordinators identify you. You can skip this.
         </p>
       </div>
 
       <div className="flex flex-col items-center gap-4">
         {preview ? (
-          <img src={preview} alt="Preview" className="h-24 w-24 rounded-full object-cover border-4 border-primary/30" />
+          <img
+            src={preview}
+            alt="Preview"
+            className="border-primary/30 h-24 w-24 rounded-full border-4 object-cover"
+          />
         ) : (
-          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-muted border-2 border-dashed border-border">
-            <Upload className="h-8 w-8 text-muted-foreground" />
+          <div className="bg-muted border-border flex h-24 w-24 items-center justify-center rounded-full border-2 border-dashed">
+            <Upload className="text-muted-foreground h-8 w-8" />
           </div>
         )}
-        <label className="cursor-pointer rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent">
+        <label className="border-border bg-background text-foreground hover:bg-accent cursor-pointer rounded-lg border px-4 py-2.5 text-sm font-medium">
           {preview ? 'Change photo' : 'Choose photo'}
-          <input type="file" accept="image/*" capture="user" onChange={handleChange} className="sr-only" />
+          <input
+            type="file"
+            accept="image/*"
+            capture="user"
+            onChange={handleChange}
+            className="sr-only"
+          />
         </label>
       </div>
 
       <div className="flex gap-3">
-        <button type="button" onClick={onBack}
-          className="flex items-center gap-1 rounded-lg border border-border px-4 py-2.5 text-sm text-muted-foreground hover:bg-accent">
+        <button
+          type="button"
+          onClick={onBack}
+          className="border-border text-muted-foreground hover:bg-accent flex items-center gap-1 rounded-lg border px-4 py-2.5 text-sm"
+        >
           <ChevronLeft className="h-4 w-4" /> Back
         </button>
-        <button type="button" onClick={() => onNext(file)}
-          className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 min-h-[48px]">
+        <button
+          type="button"
+          onClick={() => onNext(file)}
+          className="bg-primary text-primary-foreground hover:bg-primary/90 flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold"
+        >
           Next <ChevronRight className="h-4 w-4" />
         </button>
       </div>
-      <button type="button" onClick={() => onNext(null)}
-        className="w-full text-center text-sm text-muted-foreground hover:text-foreground">
+      <button
+        type="button"
+        onClick={() => onNext(null)}
+        className="text-muted-foreground hover:text-foreground w-full text-center text-sm"
+      >
         Skip for now
       </button>
     </div>
@@ -825,6 +942,7 @@ export function OnboardingWizard() {
   const [step, setStep] = React.useState<WizardStep>('role');
   const [state, setState] = React.useState<WizardState>({
     role: null,
+    displayName: user?.displayName ?? '',
     volunteerValues: null,
     coordinatorValues: null,
     phone: null,
@@ -834,17 +952,24 @@ export function OnboardingWizard() {
   const [saveError, setSaveError] = React.useState<string | null>(null);
 
   const selectedRole = state.role ?? UserRole.CITIZEN;
-  const hasPhone = !!(user?.phoneNumber);
+  const hasPhone = !!user?.phoneNumber;
   const totalSteps = getTotalSteps(selectedRole, hasPhone);
 
   const currentStepNumber = (() => {
     switch (step) {
-      case 'role': return 1;
+      case 'role':
+        return 1;
+      case 'name':
+        return 2;
       case 'volunteer':
-      case 'coordinator': return 2;
-      case 'phone': return hasPhone ? 2 : 2;
-      case 'photo': return hasPhone ? 2 : 3;
-      case 'location': return totalSteps;
+      case 'coordinator':
+        return 3;
+      case 'phone':
+        return hasPhone ? 3 : 3;
+      case 'photo':
+        return hasPhone ? 3 : 4;
+      case 'location':
+        return totalSteps;
     }
   })();
 
@@ -857,6 +982,12 @@ export function OnboardingWizard() {
 
   const handleRoleNext = (role: UserRole) => {
     setState((s) => ({ ...s, role }));
+    setStep('name');
+  };
+
+  const handleNameNext = (values: NameValues) => {
+    setState((s) => ({ ...s, displayName: values.displayName }));
+    const role = state.role ?? UserRole.CITIZEN;
     if (role === UserRole.VOLUNTEER) setStep('volunteer');
     else if (role === UserRole.COORDINATOR || role === UserRole.ADMIN) setStep('coordinator');
     else goToPhoneOrLocation();
@@ -900,7 +1031,7 @@ export function OnboardingWizard() {
         uid: user.uid,
         phoneNumber: user.phoneNumber ?? state.phone ?? null,
         email: user.email ?? null,
-        displayName: user.displayName ?? '',
+        displayName: state.displayName || user.displayName || '',
         photoURL,
         role,
         language: 'en',
@@ -932,17 +1063,17 @@ export function OnboardingWizard() {
               activeAssignmentId: null,
             }
           : role === UserRole.COORDINATOR || role === UserRole.ADMIN
-          ? {
-              ...baseProfile,
-              organizationName: state.coordinatorValues?.organizationName ?? '',
-              designation: state.coordinatorValues?.designation ?? '',
-              managedDistricts: [state.coordinatorValues?.district ?? ''],
-              assignedDisasters: [],
-            }
-          : {
-              ...baseProfile,
-              reportIds: [],
-            };
+            ? {
+                ...baseProfile,
+                organizationName: state.coordinatorValues?.organizationName ?? '',
+                designation: state.coordinatorValues?.designation ?? '',
+                managedDistricts: [state.coordinatorValues?.district ?? ''],
+                assignedDisasters: [],
+              }
+            : {
+                ...baseProfile,
+                reportIds: [],
+              };
 
       // 3. Write to Firestore.
       const { setDocument } = await import('@/lib/firebase/firestore');
@@ -978,9 +1109,7 @@ export function OnboardingWizard() {
       {/* Header + progress */}
       <div className="space-y-3">
         <div>
-          <h1 className="text-xl font-semibold text-foreground">
-            {t('auth.onboarding.title')}
-          </h1>
+          <h1 className="text-foreground text-xl font-semibold">{t('auth.onboarding.title')}</h1>
         </div>
         <StepProgress current={currentStepNumber} total={totalSteps} />
       </div>
@@ -988,28 +1117,34 @@ export function OnboardingWizard() {
       {/* Step content */}
       {step === 'role' && <StepRole onNext={handleRoleNext} />}
 
-      {step === 'volunteer' && (
-        <StepVolunteer
-          onNext={handleVolunteerNext}
+      {step === 'name' && (
+        <StepName
+          defaultValue={state.displayName}
+          onNext={handleNameNext}
           onBack={() => setStep('role')}
         />
       )}
 
+      {step === 'volunteer' && (
+        <StepVolunteer onNext={handleVolunteerNext} onBack={() => setStep('name')} />
+      )}
+
       {step === 'coordinator' && (
-        <StepCoordinator
-          onNext={handleCoordinatorNext}
-          onBack={() => setStep('role')}
-        />
+        <StepCoordinator onNext={handleCoordinatorNext} onBack={() => setStep('name')} />
       )}
 
       {step === 'phone' && (
         <StepPhone
-          onNext={(phone) => { setState((s) => ({ ...s, phone })); setStep('photo'); }}
+          onNext={(phone) => {
+            setState((s) => ({ ...s, phone }));
+            setStep('photo');
+          }}
           onBack={() => {
             const role = state.role ?? UserRole.CITIZEN;
             if (role === UserRole.VOLUNTEER) setStep('volunteer');
-            else if (role === UserRole.COORDINATOR || role === UserRole.ADMIN) setStep('coordinator');
-            else setStep('role');
+            else if (role === UserRole.COORDINATOR || role === UserRole.ADMIN)
+              setStep('coordinator');
+            else setStep('name');
           }}
         />
       )}
@@ -1017,8 +1152,17 @@ export function OnboardingWizard() {
       {step === 'photo' && (
         <StepPhoto
           existingPhotoUrl={user?.photoURL}
-          onNext={(file) => { setState((s) => ({ ...s, avatarFile: file })); setStep('location'); }}
-          onBack={() => { if (!hasPhone) { setStep('phone'); } else { goToPhoneOrLocation(); } }}
+          onNext={(file) => {
+            setState((s) => ({ ...s, avatarFile: file }));
+            setStep('location');
+          }}
+          onBack={() => {
+            if (!hasPhone) {
+              setStep('phone');
+            } else {
+              goToPhoneOrLocation();
+            }
+          }}
         />
       )}
 
@@ -1035,7 +1179,7 @@ export function OnboardingWizard() {
         <div
           role="alert"
           aria-live="assertive"
-          className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive"
+          className="border-destructive/30 bg-destructive/5 text-destructive flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm"
         >
           <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
           {saveError}
